@@ -44,7 +44,7 @@ public class ZoomTransition : MonoBehaviour
                 yield return null;
             }
             mainCamera.fieldOfView = 0;
-            SceneManager.LoadScene("MainScene");
+            SceneManager.LoadScene("ShipHub");
         }
     }
 

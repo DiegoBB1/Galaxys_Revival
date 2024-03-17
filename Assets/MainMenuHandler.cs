@@ -6,7 +6,7 @@ using UnityEngine.SceneManagement;
 public class MainMenuHandler : MonoBehaviour
 {
     [SerializeField] private ZoomTransition zoomTransition;
-
+    
     public void StartGame(){
         zoomTransition.zoomIn();
         //SceneManager.LoadScene("MainScene");
