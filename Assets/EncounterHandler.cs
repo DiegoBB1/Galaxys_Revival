@@ -12,7 +12,7 @@ public class EncounterHandler : MonoBehaviour
     [SerializeField] private TextMeshProUGUI gameOverText;
     [SerializeField] private TextMeshProUGUI gameOverDesc;
     [SerializeField] private TextMeshProUGUI backButtonText;
-
+    [SerializeField] private TextMeshProUGUI healthText;
     [SerializeField] private TextMeshProUGUI objectiveText;
 
     public static String difficulty;
@@ -42,6 +42,7 @@ public class EncounterHandler : MonoBehaviour
             }else{
                 Player.currency += 100;
             }
+            ShipHubHandler.planetsLiberated++;
         }
         else{
             gameOverText.text = "You Lose!";
@@ -57,6 +58,7 @@ public class EncounterHandler : MonoBehaviour
     public void enemyDefeated(){
         Player player = GameObject.FindWithTag("Player").GetComponent<Player>();
         GameObject.FindWithTag("Player").GetComponent<Player>().enemiesDefeated++;
+        Spawner.currentEnemies--;
         // Debug.Log("Enemies Defeated: " + ++GameObject.FindWithTag("Player").GetComponent<Player>().enemiesDefeated);
         objectiveText.text = "Current Objective: Defeat all enemies (" + player.enemiesDefeated + "/" + player.enemiesRequired + " defeated";
         if(player.enemiesDefeated == player.enemiesRequired){

@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 25876651721386980}
   - component: {fileID: -70097640716050525}
   - component: {fileID: 6812029464780730382}
+  - component: {fileID: 8339371011123602534}
   m_Layer: 0
   m_Name: Enemy1
   m_TagString: Enemy
@@ -172,3 +173,24 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   enemyHealth: 2
+  damageDealt: 2
+  enemySpeed: 4
+--- !u!114 &8339371011123602534
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7103919162438912490}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a65b06e894c62b84eb93f71b4aeb79f5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  myEnemy: {fileID: 6812029464780730382}
+  player: {fileID: 6940188538305937257, guid: 86a0c096daf3a314fa70b0dbeec7315b, type: 3}
+  obstacles:
+    serializedVersion: 2
+    m_Bits: 0
+  sightDistance: 5
+  gridSize: 1

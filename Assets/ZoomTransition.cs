@@ -16,10 +16,11 @@ public class ZoomTransition : MonoBehaviour
     [SerializeField] private Player player;
     [SerializeField] private GameObject UI;
 
-
     // Start is called before the first frame update
     void Start()
     {
+                Debug.Log("Zoom out called in start");
+
         zoomOut();
     }
 
@@ -32,7 +33,7 @@ public class ZoomTransition : MonoBehaviour
 
     //zoomIn uses a coroutine to gradually change the fov from the current fov to 0. This is called before transitioning into a new scene.
     //After the zoom in effect finishes, the next scene is loaded.
-    public void zoomIn(){
+    public void zoomIn(string sceneName){
         StartCoroutine(zoomInRoutine());
         IEnumerator zoomInRoutine(){
             float timer = 0;
@@ -44,7 +45,7 @@ public class ZoomTransition : MonoBehaviour
                 yield return null;
             }
             mainCamera.fieldOfView = 0;
-            SceneManager.LoadScene("ShipHub");
+            SceneManager.LoadScene(sceneName);
         }
     }
 
@@ -67,6 +68,41 @@ public class ZoomTransition : MonoBehaviour
             if(UI != null){
                 UI.SetActive(true);
             }
+
+            if(SceneManager.GetActiveScene().name == "MainScene"){
+                Spawner spawner = GameObject.FindWithTag("Spawner").GetComponent<Spawner>();
+                spawner.spawnEnemies();
+            }
+        }
+    }
+
+    public void swapCanvas(GameObject sourceCanvas, GameObject destCanvas, Camera zoomCamera){
+        Debug.Log("Swap Canvas Started");
+        StartCoroutine(swapRoutine());
+
+        IEnumerator swapRoutine(){
+            float timer = 0;
+            while (timer < zoomInTime){
+                float t = timer/zoomInTime;
+                zoomCamera.fieldOfView = Mathf.Lerp(zoomCamera.fieldOfView, 0, t);
+                timer += Time.deltaTime;
+
+                yield return null;
+            }
+            zoomCamera.fieldOfView = 0;
+            sourceCanvas.SetActive(false);
+            destCanvas.SetActive(true);
+
+            timer = 0;
+            while (timer < zoomOutTime){
+                float t = timer/zoomOutTime;
+                zoomCamera.fieldOfView = Mathf.Lerp(zoomCamera.fieldOfView, fov, t);
+                timer += Time.deltaTime;
+
+                yield return null;
+            }
+            zoomCamera.fieldOfView = fov;
+
         }
     }
 }

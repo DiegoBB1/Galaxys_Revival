@@ -10,76 +10,95 @@ public class Spawner : MonoBehaviour
     [SerializeField] public GameObject enemy4;
     [SerializeField] public GameObject enemy5;
     [SerializeField] public GameObject enemy6;
+    [SerializeField] public Player player;
+
     [SerializeField] int maxEnemyCount = 10;
     GameObject [] enemies;
-
+    public static int currentEnemies = 0;
     void Start()
     {
         //SpawnObjects();
-        countEnemies();
+        // countEnemies();
+        currentEnemies = 0;
     }
 
     void Update(){
-        enemies = GameObject.FindGameObjectsWithTag("Enemy");
-        if(enemies.Length < maxEnemyCount){
-            //Spawn enemy function, switch case
-            // 6 weakest 50%
-            // 125 same 30%
-            // 34 largest 20%
-        
-            int enemyType = Random.Range(0,10);
 
-            if(enemyType < 5){ //0,1,2,3,4
-                spawnEnemyRandom(enemy6);
-            }
-            else if(enemyType == 5){
-                spawnEnemyRandom(enemy1);
-            }
-            else if(enemyType == 6){
-                spawnEnemyRandom(enemy2);
-            }
-            else if(enemyType == 7){
-                spawnEnemyRandom(enemy5);
-            }
-            else if(enemyType == 8){
-                spawnEnemyRandom(enemy3);
-            }
-            else{
-                spawnEnemyRandom(enemy4);
-            }
-        }
     }
 
-    void countEnemies(){
-        StartCoroutine(CountRoutine());
+    public void spawnEnemies(){
+        StartCoroutine(SpawnRoutine());
 
-        IEnumerator CountRoutine(){
+        IEnumerator SpawnRoutine(){
             while(true){
-                yield return new WaitForSeconds(5);            
-                enemies = GameObject.FindGameObjectsWithTag("Enemy");
-                // Debug.Log("Current Enemy Count: " + enemies.Length);
+                yield return new WaitForSeconds(.25f);            
+                // enemies = GameObject.FindGameObjectsWithTag("Enemy");
+                if(currentEnemies < maxEnemyCount){
+                //Spawn enemy function, switch case
+                // 6 weakest 50%
+                // 125 same 30%
+                // 34 largest 20%
+                    
+                    int enemyType = Random.Range(0,10);
+
+                    if(enemyType < 5){ //0,1,2,3,4
+                        spawnEnemyRandom(enemy6);
+                    }
+                    else if(enemyType == 5){
+                        spawnEnemyRandom(enemy1);
+                    }
+                    else if(enemyType == 6){
+                        spawnEnemyRandom(enemy2);
+                    }
+                    else if(enemyType == 7){
+                        spawnEnemyRandom(enemy5);
+                    }
+                    else if(enemyType == 8){
+                        spawnEnemyRandom(enemy3);
+                    }
+                    else{
+                        spawnEnemyRandom(enemy4);
+                    }
+
+                    currentEnemies++;
+
+                }
             }
         }
     }
+    // void countEnemies(){
+    //     StartCoroutine(CountRoutine());
 
-    // void SpawnObjects(){
-    //     StartCoroutine(SpawnerRoutine());
-    //     StartCoroutine(SpawnerRoutine());
-
-    //     IEnumerator SpawnerRoutine(){
+    //     IEnumerator CountRoutine(){
     //         while(true){
-    //             yield return new WaitForSeconds(1);            
-    //             SpawnStarRandom();
-    //             SpawnStarRandom();
-    //             SpawnObstaclesRandom();
+    //             yield return new WaitForSeconds(5);            
+    //             enemies = GameObject.FindGameObjectsWithTag("Enemy");
+    //             // Debug.Log("Current Enemy Count: " + enemies.Length);
     //         }
     //     }
     // }
-    public void spawnEnemyRandom(GameObject enemy){
-        float randomX = Random.Range(-8,8.5f);
-        float randomY = Random.Range(8, 15);
-        GameObject newStar = Instantiate(enemy, new Vector3(randomX, randomY, 0),Quaternion.identity);
 
+    public void spawnEnemyRandom(GameObject enemy){
+        //Random number is generated to determine what axis to spawn the enemy along.
+        float axis = Random.Range(0,2);
+        float randomX;
+        float randomY;
+
+        //If axis is 0, then the enemy will potentially spawn along all available x values within the used range
+        if(axis == 0){
+            randomX = Random.Range(player.transform.position.x -32 , player.transform.position.x + 32);
+            randomY = Random.Range(1, 3)==1 ? Random.Range(player.transform.position.y-23, player.transform.position.y-13) : Random.Range(player.transform.position.y+13, player.transform.position.y+23);
+        }
+        //If axis is 1, then the enemy will potentially spawn along all available y values within the used range
+        else{
+            randomX = Random.Range(1, 3)==1 ? Random.Range(player.transform.position.x-32, player.transform.position.x-22) : Random.Range(player.transform.position.x+22, player.transform.position.x+32);
+            randomY = Random.Range(player.transform.position.y -23 , player.transform.position.y + 23);
+        }
+
+        GameObject newEnemy = Instantiate(enemy, new Vector3(randomX, randomY, 0),Quaternion.identity);
+        newEnemy.GetComponent<Enemy>().enemyHealth += Player.systemsComplete;
+        newEnemy.GetComponent<Enemy>().enemySpeed += Player.systemsComplete;
+        newEnemy.GetComponent<Enemy>().damageDealt += Player.systemsComplete;
     }
 
 }

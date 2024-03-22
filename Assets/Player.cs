@@ -1,22 +1,37 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-    [SerializeField] float playerSpeed = 0f;
+    public static float playerSpeed = 5f;
     [SerializeField] GameObject weaponProjectile;
     [SerializeField] float projectileSpeed = 5f;
 
     [SerializeField] public int enemiesRequired = 100;
+    [SerializeField] private TextMeshProUGUI healthText;
+
     Rigidbody2D rb;
 
     public static int currency = 100;
 
+    public static bool isImmune = false;
+    public static float projectileCooldown = 1;
+
     public bool objectiveCompleted = false; 
-    public float playerHealth = 3;
+    public static float playerHealth = 3;
+    public static int strength = 1;
+    public static int defense = 0;
 
     public int enemiesDefeated = 0;
+    public static bool pierceProjectiles = false;
+    public static int systemsComplete = 0;
+
+    GameObject encounterHandler;
+
+    SpriteRenderer spriteRenderer;
+
     // void Awake(){
     //     this.playerHealth = 3;
     // }
@@ -24,9 +39,11 @@ public class Player : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        playerSpeed = 6;
-        playerHealth = 3;
+        spriteRenderer = GetComponent<SpriteRenderer>();
         rb = GetComponent<Rigidbody2D>();
+        encounterHandler = GameObject.Find("EncounterHandler");
+        isImmune = false;
+        healthText.text = "HP: " + playerHealth;
     }
 
     public void movePlayer(Vector3 input){
@@ -38,20 +55,49 @@ public class Player : MonoBehaviour
         newProjectile.GetComponent<Rigidbody2D>().AddForce(direction * projectileSpeed);
         Destroy(newProjectile, 5);
     }
-    // public void gameOver(){
-    //     //Randomly selects one of the three game over sound effects to play, then loads the game over screen.
-    //     int randomSound = Random.Range(0,2);
 
-    //     if(randomSound == 0){
-    //         gameOver1.Play();
-    //     }
-    //     else if(randomSound == 1){
-    //         gameOver2.Play();
-    //     }
-    //     else{
-    //         gameOver3.Play();
-    //     }
+    public void damageTaken(int damage){
+        // Debug.Log("Damage Taken. Player is temporarily Immune.");
+        immuneCooldown();
+        spriteRenderer.color = Color.red;
+        StartCoroutine(damageEffect());
+        //Regardless of strength, you cannot be completely immune to an attack unless you have iframes. Defaults to 1 damage if you're defense is high enough to technically make you immune.
+        if(damage-defense <= 0){
+            damage = 1;
+        }
+        // Otherwise damage is mitigated using your defense stat.
+        else{
+            damage = damage - defense;
+        }
+        playerHealth = playerHealth - damage;
+        
+        if(playerHealth <= 0){
+            healthText.text = "HP: 0";
+            Time.timeScale = 0;
+            encounterHandler.GetComponent<EncounterHandler>().encounterFinish();
+        }
+        else
+            healthText.text = "HP: " + playerHealth;
+    }
 
-    //     gameOverMenu.displayMenu();
-    // }
+    public void immuneCooldown(){
+        if(isImmune){
+            return;
+        }
+
+        isImmune = true;
+
+        //wait for cooldown seconds until we can shoot again
+        StartCoroutine(ShootCooldownRoutine());
+        IEnumerator ShootCooldownRoutine(){
+                yield return new WaitForSeconds(2);
+                isImmune = false;
+                // Debug.Log("Player is no longer immune.");
+            }
+    }
+
+    public IEnumerator damageEffect(){
+        yield return new WaitForSeconds(2);
+        spriteRenderer.color = Color.white;
+    }
 }

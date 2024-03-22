@@ -5,7 +5,8 @@ using UnityEngine;
 public class Projectile : MonoBehaviour
 {
 
-    GameObject encounterHandler; 
+    GameObject encounterHandler;
+    SpriteRenderer spriteRenderer; 
 
     // Start is called before the first frame update
     void Start()
@@ -21,13 +22,19 @@ public class Projectile : MonoBehaviour
     
     public void OnTriggerEnter2D(Collider2D other){
         if(other.gameObject.tag == "Enemy"){
-            Destroy(gameObject);
-            other.GetComponent<Enemy>().enemyHealth--;
-            if(other.GetComponent<Enemy>().enemyHealth == 0){
+            if(!Player.pierceProjectiles){
+                Destroy(gameObject);
+            }
+            other.GetComponent<Enemy>().enemyHealth -= Player.strength;
+            spriteRenderer = other.GetComponent<SpriteRenderer>();
+            spriteRenderer.color = Color.red;
+
+            other.GetComponent<Enemy>().damageTaken();
+            if(other.GetComponent<Enemy>().enemyHealth <= 0){
                 Destroy(other.GetComponent<Enemy>().gameObject);
                 encounterHandler.GetComponent<EncounterHandler>().enemyDefeated();
             }
+
         }
     }
-
 }

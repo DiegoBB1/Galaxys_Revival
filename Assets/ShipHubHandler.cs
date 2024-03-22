@@ -7,22 +7,25 @@ using UnityEngine.EventSystems;
 public class ShipHubHandler : MonoBehaviour
 {
 
-    [SerializeField] private TextMeshProUGUI currencyCount;
+    [SerializeField] private ZoomTransition zoomTransition;
 
-    public GameObject mainCam;
-    public GameObject shopCam;
-    public GameObject planetSelectCam;
+    [SerializeField] public TextMeshProUGUI currencyCount;
+    [SerializeField] public TextMeshProUGUI encounterText;
+
+    public Camera mainCamera;
 
     public GameObject mainCanvas;
     public GameObject shopCanvas;
     public GameObject planetSelectCanvas;
 
     private GameObject player;
+    public static int planetsLiberated = 0;
+    public static int planetsRequired = 3;
 
     // Start is called before the first frame update
     void Start()
     {
-        // player = GameObject.FindWithTag("Player");
+
     }
 
     // Update is called once per frame
@@ -32,10 +35,8 @@ public class ShipHubHandler : MonoBehaviour
     }
 
     public void planetSelect(){
-        mainCanvas.SetActive(false);
-        planetSelectCanvas.SetActive(true);
-        mainCam.SetActive(false);
-        planetSelectCam.SetActive(true);
+        encounterText.text = "Progress toward Next System: Liberate " + planetsRequired + " Planets. " + planetsLiberated + "/" + planetsRequired + " Liberated.";
+        zoomTransition.swapCanvas(mainCanvas, planetSelectCanvas, mainCamera);
     }
 
     public void shopSelect(){
@@ -44,10 +45,7 @@ public class ShipHubHandler : MonoBehaviour
              currencyCount.text = "Current Amount: 0";
         else
             currencyCount.text = "Current Amount: " + Player.currency;
-        mainCanvas.SetActive(false);
-        shopCanvas.SetActive(true);
-        mainCam.SetActive(false);
-        shopCam.SetActive(true);
+        zoomTransition.swapCanvas(mainCanvas,shopCanvas, mainCamera);
     }
 
     public void purchaseUpgrade(){
@@ -60,16 +58,17 @@ public class ShipHubHandler : MonoBehaviour
     }
 
     public void returnToMain(){
-        SceneManager.LoadScene("MainMenu");
+        zoomTransition.zoomIn("MainMenu");
     }
 
     public void backSelect(){
-        shopCanvas.SetActive(false);
-        planetSelectCanvas.SetActive(false);
-        mainCanvas.SetActive(true);
-        shopCam.SetActive(false);
-        planetSelectCam.SetActive(false);
-        mainCam.SetActive(true);
+        if(shopCanvas.activeSelf){
+            zoomTransition.swapCanvas(shopCanvas, mainCanvas, mainCamera);
+        }
+        else{
+            zoomTransition.swapCanvas(planetSelectCanvas, mainCanvas, mainCamera);
+        }
+        Tooltip.hidden = true;
     }
 
     public void planetLaunch(){
@@ -83,6 +82,31 @@ public class ShipHubHandler : MonoBehaviour
            EncounterHandler.difficulty = "Hard";
         }
         
-        SceneManager.LoadScene("MainScene");
+        zoomTransition.zoomIn("MainScene");
+    }
+
+    public void systemLaunch(){
+        // If player has completed the required number of encounters, they are able to to travel to the next system.
+        // Once a new system is launched, a transition will play and bring the player back to the ship hub.
+        // The ship hub will have refreshed shop and planets, counter to travel to next system is also reset to 0. All
+        // All upgrades and stats remain the same, but difficulty increases.
+        if(planetsLiberated == planetsRequired){
+            //Show a confirmation message before moving to next system?
+            planetsLiberated = 0;
+            Player.systemsComplete += 1;
+            //Create transition for moving to next system
+            //Reload the scene
+            if(planetsRequired <= 10){
+                planetsRequired++;
+            }
+            SceneManager.LoadScene("ShipHub");
+
+            //Increase difficulty across the board on system launch
+            EnemyAI.sightDistance += 2;
+        }
+        else{
+            //Tell player that they have not completed enough encounters.
+            Debug.Log("Player needs to complete more encounters");
+        }
     }
 }
