@@ -14,7 +14,6 @@ public class Tooltip : MonoBehaviour
     private void Awake(){
         // toolTipText
         // showTooltip("Testing String");
-        Debug.Log("Awake. Instance Initialized");
         instance = this;
     }
 

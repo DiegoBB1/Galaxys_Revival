@@ -86,16 +86,40 @@ public class Spawner : MonoBehaviour
 
         //If axis is 0, then the enemy will potentially spawn along all available x values within the used range
         if(axis == 0){
-            randomX = Random.Range(player.transform.position.x -32 , player.transform.position.x + 32);
-            randomY = Random.Range(1, 3)==1 ? Random.Range(player.transform.position.y-23, player.transform.position.y-13) : Random.Range(player.transform.position.y+13, player.transform.position.y+23);
+            //Generates a random point off screen, within the boundaries on the entire map
+            do 
+            {
+                randomX = Random.Range(player.transform.position.x -32 , player.transform.position.x + 32);
+            }
+            while (randomX < -97 || randomX > 97);
+
+            
+            do 
+            {
+                randomY = Random.Range(1, 3)==1 ? Random.Range(player.transform.position.y-23, player.transform.position.y-13) : Random.Range(player.transform.position.y+13, player.transform.position.y+23);
+            }
+            while (randomY < -45 || randomY > 49);
         }
         //If axis is 1, then the enemy will potentially spawn along all available y values within the used range
         else{
-            randomX = Random.Range(1, 3)==1 ? Random.Range(player.transform.position.x-32, player.transform.position.x-22) : Random.Range(player.transform.position.x+22, player.transform.position.x+32);
-            randomY = Random.Range(player.transform.position.y -23 , player.transform.position.y + 23);
+            //Generates a random point off screen, within the boundaries on the entire map
+            do 
+            {
+                randomX = Random.Range(1, 3)==1 ? Random.Range(player.transform.position.x-32, player.transform.position.x-22) : Random.Range(player.transform.position.x+22, player.transform.position.x+32);
+            }
+            while (randomX < -97 || randomX > 97);
+
+            
+            do 
+            {
+                randomY = Random.Range(player.transform.position.y -23 , player.transform.position.y + 23);
+            }
+            while (randomY < -45 || randomY > 49);
         }
 
         GameObject newEnemy = Instantiate(enemy, new Vector3(randomX, randomY, 0),Quaternion.identity);
+
+        //Enemy becomes stronger based on how many systems have been completed
         newEnemy.GetComponent<Enemy>().enemyHealth += Player.systemsComplete;
         newEnemy.GetComponent<Enemy>().enemySpeed += Player.systemsComplete;
         newEnemy.GetComponent<Enemy>().damageDealt += Player.systemsComplete;

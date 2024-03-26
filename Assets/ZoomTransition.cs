@@ -19,8 +19,6 @@ public class ZoomTransition : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-                Debug.Log("Zoom out called in start");
-
         zoomOut();
     }
 
@@ -64,12 +62,12 @@ public class ZoomTransition : MonoBehaviour
             }
             mainCamera.fieldOfView = fov;
 
-            //Could add fade in effect for UI, for now it appears after zoomOutTime seconds
-            if(UI != null){
-                UI.SetActive(true);
-            }
+            // //Could add fade in effect for UI, for now it appears after zoomOutTime seconds
+            // if(UI != null){
+            //     UI.SetActive(true);
+            // }
 
-            if(SceneManager.GetActiveScene().name == "MainScene"){
+            if(SceneManager.GetActiveScene().name == "MainScene" && EncounterHandler.difficulty != "Hard"){
                 Spawner spawner = GameObject.FindWithTag("Spawner").GetComponent<Spawner>();
                 spawner.spawnEnemies();
             }
@@ -77,7 +75,6 @@ public class ZoomTransition : MonoBehaviour
     }
 
     public void swapCanvas(GameObject sourceCanvas, GameObject destCanvas, Camera zoomCamera){
-        Debug.Log("Swap Canvas Started");
         StartCoroutine(swapRoutine());
 
         IEnumerator swapRoutine(){

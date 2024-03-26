@@ -172,9 +172,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 35a28b03d80627347a0a736a0841d4a2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  enemyHealth: 2
+  enemyHealth: 3
   damageDealt: 2
-  enemySpeed: 4
+  enemySpeed: 3
+  body: {fileID: 0}
 --- !u!114 &8339371011123602534
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -192,5 +193,4 @@ MonoBehaviour:
   obstacles:
     serializedVersion: 2
     m_Bits: 0
-  sightDistance: 5
   gridSize: 1

@@ -42,9 +42,9 @@ public class ShipHubHandler : MonoBehaviour
     public void shopSelect(){
         // Player player = GameObject.FindGameObjectWithTag("Player").GetComponent<Player>();
         if(Player.currency < 0)
-             currencyCount.text = "Current Amount: 0";
+             currencyCount.text = "Total Credits: 0";
         else
-            currencyCount.text = "Current Amount: " + Player.currency;
+            currencyCount.text = "Total Credits: " + Player.currency + "c";
         zoomTransition.swapCanvas(mainCanvas,shopCanvas, mainCamera);
     }
 
@@ -80,9 +80,13 @@ public class ShipHubHandler : MonoBehaviour
         }
         else{
            EncounterHandler.difficulty = "Hard";
+           EnemyAI.sightDistance += 10;
         }
-        
-        zoomTransition.zoomIn("MainScene");
+
+        //If you have completed enough encounters to go to the next system, you are unable to stay in the current system.
+        if(planetsLiberated != planetsRequired)
+            zoomTransition.zoomIn("MainScene");
+        Debug.Log("You have liberated enough sectors, launch to the next system!");
     }
 
     public void systemLaunch(){
@@ -101,8 +105,9 @@ public class ShipHubHandler : MonoBehaviour
             }
             SceneManager.LoadScene("ShipHub");
 
-            //Increase difficulty across the board on system launch
+            //Increase sight distance across the board on system launch, other variables are increased on instance creation
             EnemyAI.sightDistance += 2;
+
         }
         else{
             //Tell player that they have not completed enough encounters.

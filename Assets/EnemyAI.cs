@@ -12,7 +12,7 @@ public class EnemyAI : MonoBehaviour
 
     [Header("Config")]
     public LayerMask obstacles;
-    public static float sightDistance = 5;
+    public static float sightDistance = 10;
 
     [Header("Pathfinding")]
     Pathfinder<Vector2> pathfinder;

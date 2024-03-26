@@ -11,6 +11,7 @@ public class UI_Shop : MonoBehaviour
     private Transform container;
     private Transform shopItemTemplate;
     ShipHubHandler shipHubHandler;
+    private bool statMaxed;
     public void Awake(){
         container = transform.Find("container");
         shopItemTemplate = container.Find("shopItemTemplate");
@@ -19,10 +20,10 @@ public class UI_Shop : MonoBehaviour
     
     public void Start(){
         shipHubHandler = GameObject.Find("ShipHubHandler").GetComponent<ShipHubHandler>();
-        createItemButton("Health", 25, "Gives +3 HP", -500, 0);
+        createItemButton("Health", 25, "Gives +2 HP", -500, 0);
         createItemButton("Increased Fire Rate", 75, "Reduces time between projectiles fired by the player", -500, 1);
         createItemButton("Increased Damage", 125, "Increases the amount of damage done by projectiles", -500, 2);
-        createItemButton("Increased Speed", 50, "Increased the movement speed of the player", 500, 0);
+        createItemButton("Increased Speed", 50, "Increases the movement speed of the player", 500, 0);
         createItemButton("Increased Defense", 100, "Decreases the amount of damage taken when hit by enemies", 500, 1);
         createItemButton("Piercing Projectiles", 200, "Allows for fired projectiles to pierce enemies to hit multiple targets", 500, 2);
 
@@ -39,7 +40,7 @@ public class UI_Shop : MonoBehaviour
         shopItemRectTransform.anchoredPosition = new Vector2(xVal, 250 + (-itemHeight * index));
 
         shopItemTransform.Find("ItemName").GetComponent<TextMeshProUGUI>().SetText(itemName);
-        shopItemTransform.Find("ItemPrice").GetComponent<TextMeshProUGUI>().SetText("Price: " + itemPrice);
+        shopItemTransform.Find("ItemPrice").GetComponent<TextMeshProUGUI>().SetText("Price: " + itemPrice +"c");
         shopItemTransform.Find("ItemDesc").GetComponent<TextMeshProUGUI>().SetText(itemDesc);
 
         shopItemTransform.gameObject.SetActive(true);
@@ -49,13 +50,24 @@ public class UI_Shop : MonoBehaviour
 
     public void itemClicked(string itemName, int itemPrice){
         if(Player.currency >= itemPrice){
-            //TODO: Still takes away currency if maxed out or already purchased
+            statMaxed = false;
             //Grant upgrade
             switch(itemName) {
             case "Health":
-                Player.playerHealth += 3;
-                Debug.Log("Health Purchased");
-                Tooltip.showTooltip_Static("Health Increased");
+                if(Player.playerHealth < 10){
+                    if(Player.playerHealth + 2 > 10)
+                        Player.playerHealth = 10;
+                    else
+                        Player.playerHealth += 2;
+
+                    Debug.Log("Health Purchased");
+                    Tooltip.showTooltip_Static("Health Increased");
+                }
+                else{
+                    statMaxed = true;
+                    Debug.Log("Max Health Reached");
+                    Tooltip.showTooltip_Static("Max Health Reached");
+                }
                 break;
             case "Increased Fire Rate":
                 if(Player.projectileCooldown > 0.4f){
@@ -64,7 +76,7 @@ public class UI_Shop : MonoBehaviour
                     Tooltip.showTooltip_Static("Fire Rate Increased");
                 }
                 else{
-                    //Don't charge if upgrade will not do anything
+                    statMaxed = true;
                     Debug.Log("Max Fire Rate Reached");
                     Tooltip.showTooltip_Static("Max Fire Rate Reached");
                 }
@@ -76,7 +88,7 @@ public class UI_Shop : MonoBehaviour
                     Tooltip.showTooltip_Static("Damage Increased");
                 }
                 else{
-                    //Don't charge if upgrade will not do anything
+                    statMaxed = true;
                     Debug.Log("Max Damage Reached");
                     Tooltip.showTooltip_Static("Max Damage Reached");
                 }
@@ -89,7 +101,7 @@ public class UI_Shop : MonoBehaviour
                     
                 }
                 else{
-                    //Don't charge if upgrade will not do anything
+                    statMaxed = true;
                     Debug.Log("Max Speed Reached");
                     Tooltip.showTooltip_Static("Max Speed Reached");
                 }
@@ -101,7 +113,7 @@ public class UI_Shop : MonoBehaviour
                     Tooltip.showTooltip_Static("Defense Increased");
                 }
                 else{
-                    //Don't charge if upgrade will not do anything
+                    statMaxed = true;
                     Debug.Log("Max Defense Reached");
                     Tooltip.showTooltip_Static("Max Defense Reached");
                 }
@@ -109,24 +121,29 @@ public class UI_Shop : MonoBehaviour
             case "Piercing Projectiles":
                 // Implement piercing projectiles and give to player
                 if(Player.pierceProjectiles == true){
+                    statMaxed = true;
                     Tooltip.showTooltip_Static("Piercing Projectiles Already Owned");
+                    Debug.Log("Piercing Projectiles Already Owned");
                 }
                 else{
                     Player.pierceProjectiles = true;
                     Tooltip.showTooltip_Static("Piercing Projectiles Purchased");
+                    Debug.Log("Piercing Projectiles Purchased");
                 }
-                Debug.Log("Piercing Projectiles Purchased");
                 break;
             }
+
             //Decrement player currency
-            Player.currency = Player.currency - itemPrice;
-            shipHubHandler.currencyCount.text = "Currency: " + Player.currency + "c";
+
+            if(!statMaxed){
+                Player.currency = Player.currency - itemPrice;
+                shipHubHandler.currencyCount.text = "Total Credits: " + Player.currency + "c";
+            }
         }
         else{
             //Give message saying that player does not have enough money to purchase upgrade
-            // Debug.Log("You do not have enough currency to buy this upgrade");
+            Debug.Log("You do not have enough currency to buy this upgrade");
             Tooltip.showTooltip_Static("You do not have enough currency to buy this upgrade");
-            // Tooltip.showTooltip_Static("Testing with short string");
         }
     }
 }

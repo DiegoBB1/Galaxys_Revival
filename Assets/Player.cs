@@ -9,12 +9,12 @@ public class Player : MonoBehaviour
     [SerializeField] GameObject weaponProjectile;
     [SerializeField] float projectileSpeed = 5f;
 
-    [SerializeField] public int enemiesRequired = 100;
+    [SerializeField] public int enemiesRequired = 20;
     [SerializeField] private TextMeshProUGUI healthText;
 
     Rigidbody2D rb;
 
-    public static int currency = 100;
+    public static int currency = 150;
 
     public static bool isImmune = false;
     public static float projectileCooldown = 1;
@@ -27,8 +27,9 @@ public class Player : MonoBehaviour
     public int enemiesDefeated = 0;
     public static bool pierceProjectiles = false;
     public static int systemsComplete = 0;
-
-    GameObject encounterHandler;
+    
+    public static int totalPlanets = 0;
+    EncounterHandler encounterHandler;
 
     SpriteRenderer spriteRenderer;
 
@@ -41,9 +42,12 @@ public class Player : MonoBehaviour
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
         rb = GetComponent<Rigidbody2D>();
-        encounterHandler = GameObject.Find("EncounterHandler");
+        encounterHandler = GameObject.Find("EncounterHandler").GetComponent<EncounterHandler>();
         isImmune = false;
         healthText.text = "HP: " + playerHealth;
+        objectiveCompleted = false;
+        enemiesRequired = 20 + 10 * systemsComplete;
+
     }
 
     public void movePlayer(Vector3 input){
@@ -74,7 +78,7 @@ public class Player : MonoBehaviour
         if(playerHealth <= 0){
             healthText.text = "HP: 0";
             Time.timeScale = 0;
-            encounterHandler.GetComponent<EncounterHandler>().encounterFinish();
+            encounterHandler.encounterFinish();
         }
         else
             healthText.text = "HP: " + playerHealth;
@@ -99,5 +103,41 @@ public class Player : MonoBehaviour
     public IEnumerator damageEffect(){
         yield return new WaitForSeconds(2);
         spriteRenderer.color = Color.white;
+    }
+
+    public void OnTriggerEnter2D(Collider2D other){
+        // Branch taken if player walks into a supply cache
+        if(other.gameObject.tag == "Cache"){
+            Destroy(other.gameObject);
+            encounterHandler.cacheCollected();
+        }
+
+        // Branch taken if player finds the distress beacon for the ambush encounter
+        if(other.gameObject.tag == "Signal" && EncounterHandler.timerNotStarted){
+            // Logic for ambush encounter
+            // Once ambush starts, change objective text, start timer, and start spawning enemies (which are more aggro)
+            Spawner spawner = GameObject.FindWithTag("Spawner").GetComponent<Spawner>();
+            spawner.spawnEnemies();
+            EncounterHandler.timerNotStarted = false;
+
+            StartCoroutine(TimerRoutine());
+
+            IEnumerator TimerRoutine(){
+                while (encounterHandler.ambushTime > 0)
+                {
+                    float minutes = Mathf.FloorToInt(encounterHandler.ambushTime / 60); //divide the time by 60
+                    float seconds = Mathf.FloorToInt(encounterHandler.ambushTime % 60); // returns the remainder
+                    encounterHandler.objectiveText.text = "Survive the ambush (" + string.Format("{0:00}:{1:00}", minutes, seconds) + " remaining until exfiltration)";
+                    yield return new WaitForSeconds(1.0f);
+                    encounterHandler.ambushTime--;
+                }
+
+                encounterHandler.objectiveText.text = "Survive the ambush (" + string.Format("{0:00}:{1:00}", 0, 0) + " remaining until exfiltration)";
+                objectiveCompleted = true;
+                encounterHandler.encounterFinish();
+            }
+
+        //}
+        }
     }
 }

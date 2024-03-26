@@ -11,11 +11,15 @@ public class Enemy : MonoBehaviour
     public float enemySpeed;
     SpriteRenderer enemySR;
 
+    Rigidbody2D rb;
+
+    public GameObject body;
 
     // Start is called before the first frame update
     void Start()
     {
         enemySR = GetComponent<SpriteRenderer>();
+        rb = GetComponent<Rigidbody2D>();
     }
 
     // Update is called once per frame
@@ -76,17 +80,18 @@ public class Enemy : MonoBehaviour
     // public void MoveCreatureRb(Vector3 direction)
     // {
     //     Vector3 currentVelocity = Vector3.zero;
-    //     if(perspectiveType == CreaturePerspective.sideScroll){
-    //         currentVelocity = new Vector3(0, rb.velocity.y, 0);
-    //     }
+    //     // if(perspectiveType == CreaturePerspective.sideScroll){
+    //     //     currentVelocity = new Vector3(0, rb.velocity.y, 0);
+    //     // }
 
-    //     rb.velocity = (currentVelocity) + (direction * speed);
+    //     rb.velocity = currentVelocity + (direction * enemySpeed);
+
     //     if(rb.velocity.x < 0){
     //         body.transform.localScale = new Vector3(-1,1,1);
     //     }else if(rb.velocity.x > 0){
     //         body.transform.localScale = new Vector3(1,1,1);
     //     }
-    //     //rb.AddForce(direction * speed);
+    //     rb.AddForce(direction * enemySpeed);
     //     //rb.MovePosition(transform.position + (direction * speed * Time.deltaTime))
     // }
 
@@ -98,7 +103,7 @@ public class Enemy : MonoBehaviour
         else if(direction.x < 0){
             enemySR.flipX = false;
         }
-
+        
         transform.position += direction * Time.deltaTime * enemySpeed;
     }
 }
