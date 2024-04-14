@@ -1,15 +1,21 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class InputHandler : MonoBehaviour
 {
 
     [SerializeField] Player playerCharacter;
     private bool onCooldown = false;
+    public float timer = 0.0f;
     // Update is called once per frame
     void Update()
     {
+
+        if(Input.GetKey(KeyCode.Q)){
+            SceneManager.LoadScene("ShipHub");
+        }
         Vector3 input = Vector3.zero;
 
         //Following 4 if statements handle player movement.
@@ -26,26 +32,81 @@ public class InputHandler : MonoBehaviour
             input.y = -1;
         }
 
-        //Following 4 if statements handle player projectile firing. If projectile is not on cooldown, player is able to fire in one of 4 directions.
+        //If the weapon is not on cooldown, player is able to fire in one of the four directions. There are two general branches to handle the default weapon and charged weapon.
+        //Default weapon branch also considers if the player has the multi shot upgrade.
         if(!onCooldown){
-            if(Input.GetKey(KeyCode.UpArrow)){
-                playerCharacter.shootProjectile(new Vector3(0, 0, 90), new Vector3(0, 100, 0));
-                fireCooldown();
+
+            if(Player.weaponEquipped == "Charge Shot"){
+                //3 tiers of charge, depending on how long the player holds down the fire key.
+
+                //Once player pushes key down, a timer starts, which is checked upon release to determine the charge level.
+                if(Input.GetKey(KeyCode.UpArrow) || Input.GetKey(KeyCode.DownArrow) || Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.RightArrow))
+                    timer += Time.deltaTime;
+                
+                if(Input.GetKeyUp(KeyCode.UpArrow) || Input.GetKeyUp(KeyCode.DownArrow) || Input.GetKeyUp(KeyCode.LeftArrow) || Input.GetKeyUp(KeyCode.RightArrow)){
+                    if(timer < 1.0f)
+                        Player.chargeLevel = 1;
+                    else if(timer < 2.0f)
+                        Player.chargeLevel = 2;
+                    else
+                        Player.chargeLevel = 3;
+
+                    timer = 0.0f;
+
+                    if(Input.GetKeyUp(KeyCode.UpArrow))
+                        playerCharacter.shootProjectile(new Vector3(0, 0, 90), new Vector3(0, 100, 0));
+                    else if(Input.GetKeyUp(KeyCode.DownArrow))
+                        playerCharacter.shootProjectile(new Vector3(0, 0, -90), new Vector3(0, -100, 0));                  
+                    else if(Input.GetKeyUp(KeyCode.LeftArrow))
+                        playerCharacter.shootProjectile(new Vector3(0, 0, 180), new Vector3(-100, 0, 0));                 
+                    else if(Input.GetKeyUp(KeyCode.RightArrow))
+                        playerCharacter.shootProjectile(new Vector3(0, 0, 0), new Vector3(100, 0, 0));
+
+                    fireCooldown();
+                    
+                }
             }
-            else if(Input.GetKey(KeyCode.DownArrow)){
-                playerCharacter.shootProjectile(new Vector3(0, 0, -90), new Vector3(0, -100, 0));
-                fireCooldown();
-            }
-            else if(Input.GetKey(KeyCode.LeftArrow)){
-                playerCharacter.shootProjectile(new Vector3(0, 0, 180), new Vector3(-100, 0, 0));
-                fireCooldown();        
-            }
-            else if(Input.GetKey(KeyCode.RightArrow)){
-                playerCharacter.shootProjectile(new Vector3(0, 0, 0), new Vector3(100, 0, 0));
-                fireCooldown();
+            else{
+                if(Input.GetKey(KeyCode.UpArrow)){
+
+                    if(Player.weaponEquipped == "Multi Shot"){
+                        playerCharacter.shootProjectile(new Vector3(0, 0, 105), new Vector3(-50, 100, 0));
+                        playerCharacter.shootProjectile(new Vector3(0, 0, 75), new Vector3(50, 100, 0));
+                    }
+                    playerCharacter.shootProjectile(new Vector3(0, 0, 90), new Vector3(0, 100, 0));
+                    fireCooldown();
+                }
+                else if(Input.GetKey(KeyCode.DownArrow)){
+                    if(Player.weaponEquipped == "Multi Shot"){
+                        playerCharacter.shootProjectile(new Vector3(0, 0, -105), new Vector3(-50, -100, 0));
+                        playerCharacter.shootProjectile(new Vector3(0, 0, -75), new Vector3(50, -100, 0));
+                    }
+                    playerCharacter.shootProjectile(new Vector3(0, 0, -90), new Vector3(0, -100, 0));
+                    fireCooldown();
+                }
+                else if(Input.GetKey(KeyCode.LeftArrow)){
+                    if(Player.weaponEquipped == "Multi Shot"){
+                        playerCharacter.shootProjectile(new Vector3(0, 0, 195), new Vector3(-100, -50, 0));
+                        playerCharacter.shootProjectile(new Vector3(0, 0, 165), new Vector3(-100, 50, 0));
+                    }
+                    playerCharacter.shootProjectile(new Vector3(0, 0, 180), new Vector3(-100, 0, 0));
+                    fireCooldown();        
+                }
+                else if(Input.GetKey(KeyCode.RightArrow)){
+                    if(Player.weaponEquipped == "Multi Shot"){
+                        playerCharacter.shootProjectile(new Vector3(0, 0, -15), new Vector3(100, -50, 0));
+                        playerCharacter.shootProjectile(new Vector3(0, 0, 15), new Vector3(100, 50, 0));
+                    }
+                    playerCharacter.shootProjectile(new Vector3(0, 0, 0), new Vector3(100, 0, 0));
+                    fireCooldown();
+                }
             }
         }
         playerCharacter.movePlayer(input);
+
+        if(Input.GetKeyDown(KeyCode.Space))
+            playerCharacter.useAbility();
+        
     }
 
     public void fireCooldown(){
@@ -60,6 +121,6 @@ public class InputHandler : MonoBehaviour
         IEnumerator ShootCooldownRoutine(){
                 yield return new WaitForSeconds(Player.projectileCooldown);
                 onCooldown = false;
-            }
+        }
     }
 }

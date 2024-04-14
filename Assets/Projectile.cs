@@ -22,13 +22,10 @@ public class Projectile : MonoBehaviour
     
     public void OnTriggerEnter2D(Collider2D other){
         if(other.gameObject.tag == "Enemy"){
-            if(!Player.pierceProjectiles){
+            if(Player.weaponEquipped != "Pierce Shot"){
                 Destroy(gameObject);
             }
-            other.GetComponent<Enemy>().enemyHealth -= Player.strength;
-            spriteRenderer = other.GetComponent<SpriteRenderer>();
-            spriteRenderer.color = Color.red;
-
+            other.GetComponent<Enemy>().enemyHealth -= Player.strength + Player.chargeLevel;
             other.GetComponent<Enemy>().damageTaken();
             if(other.GetComponent<Enemy>().enemyHealth <= 0){
                 Destroy(other.GetComponent<Enemy>().gameObject);

@@ -4,6 +4,8 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.EventSystems;
+using Unity.VisualScripting;
+using System.Linq;
 public class ShipHubHandler : MonoBehaviour
 {
 
@@ -12,6 +14,9 @@ public class ShipHubHandler : MonoBehaviour
     [SerializeField] public TextMeshProUGUI currencyCount;
     [SerializeField] public TextMeshProUGUI encounterText;
 
+    [SerializeField] public TextMeshProUGUI planetOneText;
+    [SerializeField] public TextMeshProUGUI planetTwoText;
+    [SerializeField] public TextMeshProUGUI planetThreeText;
     public Camera mainCamera;
 
     public GameObject mainCanvas;
@@ -22,10 +27,15 @@ public class ShipHubHandler : MonoBehaviour
     public static int planetsLiberated = 0;
     public static int planetsRequired = 3;
 
+    private List<string> planetNames = new List<string> {"Hyperion IX", "Titanus", "Orionis", "Elysium", "Lumina", "Pulsaria", "Arcadia", "Astralyn", "Seraphim IV", "Chronosia", "Olympus XI", "Stellara"};
+
     // Start is called before the first frame update
     void Start()
     {
-
+        UI_Shop.Shuffle(planetNames);
+        planetOneText.text = "Planet: " + planetNames.ElementAt(0) + "\nThreat Level: C";
+        planetTwoText.text = "Planet: " + planetNames.ElementAt(1) + "\nThreat Level: B";
+        planetThreeText.text = "Planet: " + planetNames.ElementAt(2) + "\nThreat Level: A";
     }
 
     // Update is called once per frame
@@ -35,26 +45,16 @@ public class ShipHubHandler : MonoBehaviour
     }
 
     public void planetSelect(){
-        encounterText.text = "Progress toward Next System: Liberate " + planetsRequired + " Planets. " + planetsLiberated + "/" + planetsRequired + " Liberated.";
+        encounterText.text = "Progress toward Next System: Liberate " + planetsRequired + " Sectors. " + planetsLiberated + "/" + planetsRequired + " Liberated.";
         zoomTransition.swapCanvas(mainCanvas, planetSelectCanvas, mainCamera);
     }
 
     public void shopSelect(){
-        // Player player = GameObject.FindGameObjectWithTag("Player").GetComponent<Player>();
         if(Player.currency < 0)
              currencyCount.text = "Total Credits: 0";
         else
             currencyCount.text = "Total Credits: " + Player.currency + "c";
         zoomTransition.swapCanvas(mainCanvas,shopCanvas, mainCamera);
-    }
-
-    public void purchaseUpgrade(){
-        //Retrieve upgrade name and price
-
-        //Determine if player has enough currency
-        //If so, decrement the current balance and grant upgrade
-
-        //Change purchase icon to purchased and update the current balance displayed on screen
     }
 
     public void returnToMain(){
@@ -80,13 +80,13 @@ public class ShipHubHandler : MonoBehaviour
         }
         else{
            EncounterHandler.difficulty = "Hard";
-           EnemyAI.sightDistance += 10;
         }
 
         //If you have completed enough encounters to go to the next system, you are unable to stay in the current system.
         if(planetsLiberated != planetsRequired)
             zoomTransition.zoomIn("MainScene");
-        Debug.Log("You have liberated enough sectors, launch to the next system!");
+        else
+            Debug.Log("You have liberated enough sectors, launch to the next system!");
     }
 
     public void systemLaunch(){

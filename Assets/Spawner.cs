@@ -17,8 +17,6 @@ public class Spawner : MonoBehaviour
     public static int currentEnemies = 0;
     void Start()
     {
-        //SpawnObjects();
-        // countEnemies();
         currentEnemies = 0;
     }
 
@@ -32,7 +30,6 @@ public class Spawner : MonoBehaviour
         IEnumerator SpawnRoutine(){
             while(true){
                 yield return new WaitForSeconds(.25f);            
-                // enemies = GameObject.FindGameObjectsWithTag("Enemy");
                 if(currentEnemies < maxEnemyCount){
                 //Spawn enemy function, switch case
                 // 6 weakest 50%
@@ -118,6 +115,15 @@ public class Spawner : MonoBehaviour
         }
 
         GameObject newEnemy = Instantiate(enemy, new Vector3(randomX, randomY, 0),Quaternion.identity);
+
+        //Check if they spawned inside of an object, if so, despawn them
+        List<Collider2D> results = new List<Collider2D>();
+        ContactFilter2D filter = new ContactFilter2D().NoFilter();
+        if(newEnemy.GetComponent<BoxCollider2D>() != null && Physics2D.OverlapCollider(newEnemy.GetComponent<BoxCollider2D>(), filter, results) > 0)
+            Destroy(newEnemy.gameObject);
+        else if(newEnemy.GetComponent<PolygonCollider2D>() != null && Physics2D.OverlapCollider(newEnemy.GetComponent<PolygonCollider2D>(), filter, results) > 0)
+            Destroy(newEnemy.gameObject);
+        
 
         //Enemy becomes stronger based on how many systems have been completed
         newEnemy.GetComponent<Enemy>().enemyHealth += Player.systemsComplete;

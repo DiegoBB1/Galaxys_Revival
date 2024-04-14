@@ -104,6 +104,7 @@ MonoBehaviour:
   damageDealt: 3
   enemySpeed: 2
   body: {fileID: 0}
+  velocity: {x: 0, y: 0, z: 0}
 --- !u!50 &9007635950068136651
 Rigidbody2D:
   serializedVersion: 4
@@ -130,7 +131,7 @@ Rigidbody2D:
   m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 0
-  m_Constraints: 0
+  m_Constraints: 4
 --- !u!60 &824744958591953777
 PolygonCollider2D:
   m_ObjectHideFlags: 0
@@ -160,7 +161,7 @@ PolygonCollider2D:
   m_CallbackLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
@@ -243,5 +244,5 @@ MonoBehaviour:
   player: {fileID: 6940188538305937257, guid: 86a0c096daf3a314fa70b0dbeec7315b, type: 3}
   obstacles:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 8
   gridSize: 1

@@ -20,9 +20,5 @@ public class EnemyAIAggroState : EnemyAIState
         else{
             enemyAI.ChangeState(enemyAI.patrolState);
         }
-        // }else{
-        //     // enemyAI.ChangeState(enemyAI.investigateState);
-        // }
-
     }
 }

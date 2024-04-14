@@ -1,15 +1,14 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Threading;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
+using UnityEngine.Tilemaps;
 
 public class EncounterHandler : MonoBehaviour
 {
     public GameObject gameOverMenu;
+    public GameObject stageOne;
     [SerializeField] private TextMeshProUGUI gameOverText;
     [SerializeField] private TextMeshProUGUI gameOverDesc;
     [SerializeField] private TextMeshProUGUI backButtonText;
@@ -17,7 +16,7 @@ public class EncounterHandler : MonoBehaviour
     [SerializeField] public TextMeshProUGUI objectiveText;
 
     [SerializeField] private Player player;
-    public static String difficulty;
+    public static string difficulty;
 
     public static int totalCaches;
     public int cachesFound;
@@ -27,28 +26,88 @@ public class EncounterHandler : MonoBehaviour
     public GameObject signal;
     public GameObject signalLight;
     public float lightFadeDuration;
+    private int counter = 0;
 
     // Start is called before the first frame update
     void Start()
     {
+
+        // Randomly selects a map for the encounter
+        int randNum;
+        randNum = Random.Range(0,4);
+        switch(randNum){
+            case 0:
+                stageOne.SetActive(true);
+                break;
+            case 1:
+                stageOne.SetActive(true);
+                break;
+            case 2:
+                stageOne.SetActive(true);
+                break;
+            case 3:
+                stageOne.SetActive(true);
+                break;
+        }
+        // Randomly selects an encounter based on the difficulty selected
         player = GameObject.FindWithTag("Player").GetComponent<Player>();
 
         if(difficulty == "Easy"){
-            objectiveText.text = "Current Objective: Defeat Enemies (0/" + player.enemiesRequired + " defeated)";
+            randNum = Random.Range(0,3);
+            switch(randNum){
+                case 0:
+                    objectiveText.text = "Current Objective: Defeat Enemies (0/" + player.enemiesRequired + " defeated)";
+                    break;
+                case 1:
+                    objectiveText.text = "Current Objective: Repair malfunctioning terminals (0/5)";
+                    break;
+                case 2:
+                    objectiveText.text = "Current Objective: Deliver supplies to friendly outposts";
+                    break;
+            }
+
         }
         else if(difficulty == "Medium"){
-            caches.SetActive(true);
-            cachesFound = 0;
-            totalCaches = 9;
-            objectiveText.text = "Find and steal enemy supply caches (0/" + totalCaches + ")";
+            randNum = Random.Range(0,3);
+            switch(randNum){
+                case 0:
+                    caches.SetActive(true);
+                    cachesFound = 0;
+                    totalCaches = 9;
+                    objectiveText.text = "Current Objective: Find and steal enemy supply caches (0/" + totalCaches + ")";;
+                    break;
+                case 1:
+                    objectiveText.text = "Current Objective: Locate and defeat high-value targets (0/3)";
+                    break;
+                case 2:
+                    objectiveText.text = "Current Objective: Retake enemy controlled zones (0/3)";
+                    break;
+            }
+
         }
         else if(difficulty == "Hard"){
-            ambushTime += 10 * Player.systemsComplete;
-            objectiveText.text = "Locate the source of the distress call";
-            signal.SetActive(true);
+            randNum = Random.Range(0,3);
+            switch(randNum){
+                case 0:
+                    EnemyAI.sightDistance += 10;
+                    ambushTime += 10 * Player.systemsComplete;
+                    objectiveText.text = "Current Objective: Locate the source of the distress call";
+                    signal.SetActive(true);
 
-            StartCoroutine(AlarmRoutine());
-            IEnumerator AlarmRoutine(){
+                    StartCoroutine(AlarmRoutine());
+                    break;
+                case 1:
+                    objectiveText.text = "Current Objective: Release prisoners from enemy bases and clear them a path for exfiltration (0/3)";
+                    break;
+                case 2:
+                    objectiveText.text = "Current Objective: Destroy the enemy stronghold";
+                    break;
+            }
+
+        }
+
+
+        IEnumerator AlarmRoutine(){
                 while(true){
                     float timer = 0;
                     //Fades light from white to red
@@ -69,18 +128,11 @@ public class EncounterHandler : MonoBehaviour
                     signalLight.GetComponent<SpriteRenderer>().color = Color.white;
                     }
             }
-        }
-
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-
     }
 
     public void encounterFinish(){
         int creditsEarned;
+        int bonusCredits = 0;
         Time.timeScale = 0;
         // gameOverMenu.SetActive(true);
         if(GameObject.FindWithTag("Player").GetComponent<Player>().objectiveCompleted == true){
@@ -94,7 +146,13 @@ public class EncounterHandler : MonoBehaviour
                 creditsEarned = 100 + (100 * Player.systemsComplete);
                 EnemyAI.sightDistance -= 10;
             }
-            Player.currency += creditsEarned;
+
+            //Checks luck stat and gives bonus credits based on the probability
+            if (Random.value <= Player.luck){
+                bonusCredits = 50 * Player.systemsComplete;
+            }
+
+            Player.currency += creditsEarned + bonusCredits;
             gameOverDesc.text = "Your efforts have paid off! You have earned " + creditsEarned + " credits.";
             ShipHubHandler.planetsLiberated++;
             Player.totalPlanets++;
@@ -113,10 +171,25 @@ public class EncounterHandler : MonoBehaviour
     }
 
     public void enemyDefeated(){
-        // Player player = GameObject.FindWithTag("Player").GetComponent<Player>();
+        //If the player has the credit generation ability active, they are rewarded 50 credits for defeating an enemy
+        if(Player.abilityActive && Player.abilityEquipped == "Credit Gen"){
+            Debug.Log("10 credits granted");
+            Player.currency += 10;
+        }
+        
+        //If the player has the health generation ability active, they are rewarded 1 HP for every 5 enemies defeated
+        if(Player.abilityActive && Player.abilityEquipped == "Health Gen"){
+            counter++;
+            if(counter >= 5){
+                Debug.Log("1 HP granted");
+                Player.playerHealth = (Player.playerHealth < Player.maxHealth) ? Player.playerHealth + 1: Player.maxHealth;
+                counter = 0;
+                healthText.text = "HP: " + Player.playerHealth;
+            }
+        }
+
         GameObject.FindWithTag("Player").GetComponent<Player>().enemiesDefeated++;
         Spawner.currentEnemies--;
-        // Debug.Log("Enemies Defeated: " + ++GameObject.FindWithTag("Player").GetComponent<Player>().enemiesDefeated);
         if(difficulty == "Easy")
             objectiveText.text = "Current Objective: Defeat Enemies (" + player.enemiesDefeated + "/" + player.enemiesRequired + " defeated)";
         

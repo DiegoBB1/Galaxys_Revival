@@ -24,7 +24,6 @@ public class EnemyAI : MonoBehaviour
     public EnemyAIIdleState idleState{get; private set;}
     public EnemyAIAggroState aggroState{get; private set;}
     public EnemyAIPatrolState patrolState{get; private set;}
-    // public CreatureAIInvestigateState investigateState{get; private set;}
 
 
     public void ChangeState(EnemyAIState newState){
@@ -41,7 +40,6 @@ public class EnemyAI : MonoBehaviour
         idleState = new EnemyAIIdleState(this);
         aggroState = new EnemyAIAggroState(this);
         patrolState = new EnemyAIPatrolState(this);
-        // investigateState = new CreatureAIInvestigateState(this);
         currentState = idleState;
         player = GameObject.FindWithTag("Player").GetComponent<Player>();
 
@@ -56,6 +54,13 @@ public class EnemyAI : MonoBehaviour
     }
 
     public Player GetTarget(){
+        //If enemy is too far away from the player, they will be despawned
+        if(Vector3.Distance(myEnemy.transform.position,player.transform.position) > 55f){
+            Spawner.currentEnemies--;
+            Destroy(myEnemy.gameObject);
+            
+        }
+
         //are we close enough?
         if(Vector3.Distance(myEnemy.transform.position,player.transform.position) > sightDistance){
             // Debug.Log(Vector3.Distance(myEnemy.transform.position,player.transform.position));
@@ -68,13 +73,12 @@ public class EnemyAI : MonoBehaviour
             return null;
         }
 
+        if(Player.abilityEquipped == "Cloaking Device" && Player.abilityActive)
+            return null;
+
         return player;
 
     }
-
-    // public void SetColor(Color c){
-    //     myEnemy.body.GetComponent<SpriteRenderer>().color = c;
-    // }
 
     //pathfinding
     public float GetDistance(Vector2 A, Vector2 B)

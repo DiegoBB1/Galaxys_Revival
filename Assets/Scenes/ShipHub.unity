@@ -170,6 +170,9 @@ MonoBehaviour:
   zoomTransition: {fileID: 607086437}
   currencyCount: {fileID: 43224525}
   encounterText: {fileID: 478383843}
+  planetOneText: {fileID: 480637639}
+  planetTwoText: {fileID: 401363652}
+  planetThreeText: {fileID: 1683069780}
   mainCamera: {fileID: 607086434}
   mainCanvas: {fileID: 873966709}
   shopCanvas: {fileID: 1375903102}
@@ -2420,8 +2423,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 62.501015, y: -101.831}
-  m_SizeDelta: {x: 625, y: 77.661}
+  m_AnchoredPosition: {x: 0.00053406, y: -101.831}
+  m_SizeDelta: {x: 750, y: 77.661}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1161022577
 MonoBehaviour:
@@ -2443,7 +2446,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Gives +3 HP
+  m_text: Gives +2 HP
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -2477,7 +2480,7 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
-  m_HorizontalAlignment: 1
+  m_HorizontalAlignment: 8
   m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0

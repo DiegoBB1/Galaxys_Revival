@@ -28,7 +28,6 @@ public class MainMenuHandler : MonoBehaviour
         Player.playerHealth = 5;
         Player.strength = 1;
         Player.defense = 0;
-        Player.pierceProjectiles = false;
         Player.systemsComplete = 0;
         Player.totalPlanets = 0;
 

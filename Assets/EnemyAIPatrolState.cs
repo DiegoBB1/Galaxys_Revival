@@ -9,7 +9,6 @@ public class EnemyAIPatrolState : EnemyAIState
     public override void BeginState()
     {
         MoveRandom();
-        // enemyAI.SetColor(Color.blue);
     }
     Vector3 moveVec;
     public override void UpdateState()
