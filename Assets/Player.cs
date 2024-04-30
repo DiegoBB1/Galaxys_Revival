@@ -1,22 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-    [SerializeField] GameObject weaponProjectile;
-
-    [SerializeField] public int enemiesRequired = 20;
-    [SerializeField] private TextMeshProUGUI healthText;
-
-    Rigidbody2D rb;
-
-    public static bool isImmune = false;
-
-    public bool objectiveCompleted = false; 
-    
-
     // Player Stats
     public static int currency = 150;
     public static float playerHealth = 3;
@@ -27,29 +17,51 @@ public class Player : MonoBehaviour
     public static float luck = .1f;
     public static float projectileSpeed = 3f; //Orig 5
     public static float projectileCooldown = 1;
+    public static bool isImmune = false;   
 
-    //Player abilites/weapons
-    public static List<string> passivesPurchased = new List<string>{};
-    public static List<string> abilitiesPurchased = new List<string>{};
-    public static List<string> weaponsPurchased = new List<string>{};
-
-
+    //Player passives
+    public static List<string> passivesPurchased = new List<string>();
     public static string passiveEquipped = "None";
-    public static string abilityEquipped = "None";
-    public static string weaponEquipped = "Default";
     public static bool passiveAvailable = true;
+
+    //Player abilities
+    public static List<string> abilitiesPurchased = new List<string>();
+    public static string abilityEquipped = "None";
     public static bool abilityAvailable = true;
-    public int enemiesDefeated = 0;
     public static bool abilityActive = false;
+    public bool abilityUsed = false;
+
+    //Player weapons
+    public static List<string> weaponsPurchased = new List<string>();
+    public static string weaponEquipped = "Default";
     public static int chargeLevel = 0;
 
+    [SerializeField] List<Sprite> weaponSprites;
+ 
+    //Encounter/Game Information
+    public bool objectiveCompleted = false; 
+    public int enemiesDefeated = 0;
+    [SerializeField] public int enemiesRequired = 20;
     public static int systemsComplete = 0;
-    
     public static int totalPlanets = 0;
-    public bool abilityUsed = false;
-    EncounterHandler encounterHandler;
+    public int cachesDelivered = 0;
+    public static int numHvts = 0;
+    public int terminalsActivated = 0;
+    public bool repairingTerminal = false;
+    public static bool inZone = false;
+    public int zonesActivated = 0;
+    public int prisonersRescued = 0;
 
+    //Other necessary game references
+    [SerializeField] GameObject defaultProjectile;
+    [SerializeField] GameObject altProjectile;
+
+    [SerializeField] private TextMeshProUGUI healthText;
+    Rigidbody2D rb;    
+    EncounterHandler encounterHandler;
     SpriteRenderer spriteRenderer;
+    [SerializeField] Sprite activeTerminalSprite;
+
     private float fixedDeltaTime;
 
     // Start is called before the first frame update
@@ -63,22 +75,51 @@ public class Player : MonoBehaviour
         healthText.text = "HP: " + playerHealth;
         objectiveCompleted = false;
         enemiesRequired = 20 + 10 * systemsComplete;
-
+        numHvts = 0;
         if(passiveEquipped == "Shield")
             spriteRenderer.color = Color.cyan;
     }
 
-    public void movePlayer(Vector3 input){
+    public void MovePlayer(Vector3 input){
         rb.velocity = input * playerSpeed;
     }
 
-    public void shootProjectile(Vector3 pos, Vector3 direction){
-        GameObject newProjectile = Instantiate(weaponProjectile, transform.position, Quaternion.Euler(pos));
+    public void ShootProjectile(Vector3 pos, Vector3 direction){
+        GameObject newProjectile;
+
+        //instantiates the projectile game object based on the weapon that is currently equipped
+        if(weaponEquipped == "Pierce Shot")
+            newProjectile = Instantiate(altProjectile, transform.position, Quaternion.Euler(pos));
+        else if(weaponEquipped == "Poison Shot"){
+            newProjectile = Instantiate(altProjectile, transform.position, Quaternion.Euler(pos));
+            newProjectile.GetComponent<SpriteRenderer>().sprite = weaponSprites.ElementAt(0);
+        }
+        else if(weaponEquipped == "Multi Shot"){
+            newProjectile = Instantiate(defaultProjectile, transform.position, Quaternion.Euler(pos));
+            newProjectile.GetComponent<SpriteRenderer>().sprite = weaponSprites.ElementAt(1);
+        }
+        else if(weaponEquipped == "Charge Shot"){
+            newProjectile = Instantiate(defaultProjectile, transform.position, Quaternion.Euler(pos));
+            if(chargeLevel == 1)
+                newProjectile.GetComponent<SpriteRenderer>().sprite = weaponSprites.ElementAt(2);
+            else if(chargeLevel == 2)
+                newProjectile.GetComponent<SpriteRenderer>().sprite = weaponSprites.ElementAt(3);
+            else
+                newProjectile.GetComponent<SpriteRenderer>().sprite = weaponSprites.ElementAt(4);
+        }
+        else if(weaponEquipped == "Explosive Shot"){
+            newProjectile = Instantiate(defaultProjectile, transform.position, Quaternion.Euler(pos));
+            newProjectile.GetComponent<SpriteRenderer>().sprite = weaponSprites.ElementAt(5);
+        }
+        else
+            newProjectile = Instantiate(defaultProjectile, transform.position, Quaternion.Euler(pos));
+        
+
         newProjectile.GetComponent<Rigidbody2D>().AddForce(direction * projectileSpeed);
         Destroy(newProjectile, 3); //5 orig
     }
 
-    public void useAbility(){
+    public void UseAbility(){
         switch(abilityEquipped){
             case "Time Slow":
                 if(!abilityActive && abilityAvailable){
@@ -138,10 +179,10 @@ public class Player : MonoBehaviour
         //Create coroutine that accepts x number of seconds to wait for
     }
 
-    public void damageTaken(int damage){
+    public void DamageTaken(int damage){
         //Checks if the player has the shield passive equipped and it is not on cooldown
         if(passiveEquipped == "Shield" && passiveAvailable){
-            immuneCooldown();
+            ImmuneCooldown();
             spriteRenderer.color = Color.white;
             passiveAvailable = false;
             Debug.Log("Shield broken. Will be recharged in 60 seconds");
@@ -155,9 +196,9 @@ public class Player : MonoBehaviour
             return;
         }
 
-        immuneCooldown();
+        ImmuneCooldown();
         spriteRenderer.color = Color.red;
-        StartCoroutine(damageEffect());
+        StartCoroutine(DamageEffect());
         //Regardless of strength, you cannot be completely immune to an attack unless you have iframes. Defaults to 1 damage if you're defense is high enough to technically make you immune.
         if(damage-defense <= 0){
             damage = 1;
@@ -179,14 +220,14 @@ public class Player : MonoBehaviour
             else{
                 healthText.text = "HP: 0";
                 Time.timeScale = 0;
-                encounterHandler.encounterFinish();
+                encounterHandler.EncounterFinish();
             }
         }
         else
             healthText.text = "HP: " + playerHealth;
     }
 
-    public void immuneCooldown(){
+    public void ImmuneCooldown(){
         if(isImmune){
             return;
         }
@@ -198,28 +239,100 @@ public class Player : MonoBehaviour
         IEnumerator immuneCooldownRoutine(){
                 yield return new WaitForSeconds(2);
                 isImmune = false;
-                // Debug.Log("Player is no longer immune.");
             }
     }
 
-    public IEnumerator damageEffect(){
+    public IEnumerator DamageEffect(){
         yield return new WaitForSeconds(2);
         spriteRenderer.color = Color.white;
     }
 
     public void OnTriggerEnter2D(Collider2D other){
-        // Branch taken if player walks into a supply cache
+        //EASY DIFFICULTY ENCOUNTERS
+
+        // Branch taken if player walks into a supply cache, can either be the steal cache or deliver supplies encounter
         if(other.gameObject.tag == "Cache"){
             Destroy(other.gameObject);
-            encounterHandler.cacheCollected();
+            encounterHandler.CacheCollected();
         }
+
+        //Branch taken if player walks into a location where a supply cache can be placed in the deliver supplies encounter
+        if(other.gameObject.tag == "EmptyCache"){
+            if(encounterHandler.cachesFound > 0){
+                other.isTrigger = false;
+                SpriteRenderer tempSR = other.GetComponent<SpriteRenderer>();
+                
+                Color color = new Color(tempSR.color.r, tempSR.color.g, tempSR.color.b, 1);
+                other.GetComponent<SpriteRenderer>().color = color;
+                cachesDelivered++;
+
+                encounterHandler.objectiveText.text = "Current Objective: Deliver the collected supplies to friendly outposts (" + cachesDelivered + "/3)";
+
+                if(cachesDelivered == 3){
+                    // encounterHandler.objectiveText.text = "Current Objective: Exfiltrate";
+                    objectiveCompleted = true;
+                    encounterHandler.objectiveText.text = "Current Objective: Return to teleporter for exfiltration";
+                }
+                else if(--encounterHandler.cachesFound == 0)
+                    encounterHandler.objectiveText.text = "Current Objective: Collect and deliver the additional caches (" + encounterHandler.cachesFound + "/" + (3 - cachesDelivered) +")";
+
+            }
+            else
+                Debug.Log("Player does have any remaining supplies");
+        }
+
+        //MEDIUM DIFFICULTY ENCOUNTERS
+
+        //Branch taken if player walks to the location of a terminal in the repair terminal encounter
+        if(other.gameObject.tag == "Terminal" && !repairingTerminal){
+            repairingTerminal = true;
+            Debug.Log("Activating Terminal");
+            other.isTrigger = false;
+            StartCoroutine(RepairRoutine());
+
+            IEnumerator RepairRoutine(){
+                float timer = 0;
+                while(Vector3.Distance(transform.position, other.gameObject.transform.position) < 10){
+                    yield return null;
+                    timer+=Time.deltaTime;
+                    encounterHandler.objectiveText.text = "Current Objective: Stay in range of terminal while it activates";
+                    if(timer >= 10f){
+                        Debug.Log("Terminal Activated");
+                        repairingTerminal = false;
+                        other.GetComponent<SpriteRenderer>().sprite = activeTerminalSprite;
+                        encounterHandler.objectiveText.text = "Current Objective: Repair malfunctioning terminals (" + ++terminalsActivated + "/3)";
+                        if(terminalsActivated == 3){
+                            objectiveCompleted = true;
+                            encounterHandler.objectiveText.text = "Current Objective: Return to teleporter for exfiltration";
+                        }
+                        yield break;
+                    }
+                }
+                other.isTrigger = true;
+                encounterHandler.objectiveText.text = "Current Objective: Activate terminal to reestablish connection";
+                Debug.Log("Terminal Activation Disbanded, player exited range");
+                repairingTerminal = false;
+
+            }
+        }
+
+        //Branch taken if player walks into one of the the zones for the retake zones encounter
+        if(other.gameObject.tag == "Zone" && !other.gameObject.GetComponent<Zone>().captured){
+            //If a zone is entered, it is activated, so that any kills while inside of it, will grant progress towards that specific zone
+            other.gameObject.GetComponent<Zone>().active = true;
+            other.gameObject.GetComponent<SpriteRenderer>().color = Color.white;
+            inZone = true;
+            Debug.Log("Zone Entered");
+        }
+
+        //HARD DIFFICULTY ENCOUNTERS
 
         // Branch taken if player finds the distress beacon for the ambush encounter
         if(other.gameObject.tag == "Signal" && EncounterHandler.timerNotStarted){
             // Logic for ambush encounter
             // Once ambush starts, change objective text, start timer, and start spawning enemies (which are more aggro)
             Spawner spawner = GameObject.FindWithTag("Spawner").GetComponent<Spawner>();
-            spawner.spawnEnemies();
+            spawner.SpawnEnemies();
             EncounterHandler.timerNotStarted = false;
 
             StartCoroutine(TimerRoutine());
@@ -233,12 +346,43 @@ public class Player : MonoBehaviour
                     yield return new WaitForSeconds(1.0f);
                     encounterHandler.ambushTime--;
                 }
-
-                encounterHandler.objectiveText.text = "Survive the ambush (" + string.Format("{0:00}:{1:00}", 0, 0) + " remaining until exfiltration)";
                 objectiveCompleted = true;
-                encounterHandler.encounterFinish();
+                encounterHandler.objectiveText.text = "Current Objective: Return to teleporter for exfiltration";
             }
+        }
 
+        //Branch taken when player reaches the teleporter at the end of the encounter
+        // if(other.gameObject.tag == "Teleporter" && objectiveCompleted)
+        //     Debug.Log("Triggered");
+        //     // encounterHandler.encounterFinish();
+    }
+
+    public void OnTriggerStay2D(Collider2D other){
+        if(other.gameObject.tag == "Teleporter" && objectiveCompleted && Vector3.Distance(other.transform.position,transform.position) < .65f)
+            encounterHandler.EncounterFinish();
+    }
+    
+    public void OnCollisionStay2D(Collision2D collision){
+        //Branch taken if player walks up to one of the prisoner cages
+        if(collision.gameObject.tag == "Cage" && !collision.gameObject.GetComponent<Cage>().cageOpen)
+            collision.gameObject.GetComponent<Cage>().CageOpened();
+    }
+
+    public void OnTriggerExit2D(Collider2D other){
+        if(other.gameObject.tag == "Zone"){
+            other.gameObject.GetComponent<Zone>().active = false;
+            inZone = false;
+            Debug.Log("Zone exited");
+            if(!other.gameObject.GetComponent<Zone>().captured)
+                other.gameObject.GetComponentInChildren<SpriteRenderer>().color = Color.red;
+        }
+    }
+
+    public void HvtDefeated(){
+        encounterHandler.objectiveText.text = "Current Objective: Locate and defeat high-value targets (" + ++numHvts + "/3)";
+        if(numHvts == 3){
+            objectiveCompleted = true;
+            encounterHandler.objectiveText.text = "Current Objective: Return to teleporter for exfiltration";
         }
     }
 }

@@ -54,15 +54,15 @@ public class InputHandler : MonoBehaviour
                     timer = 0.0f;
 
                     if(Input.GetKeyUp(KeyCode.UpArrow))
-                        playerCharacter.shootProjectile(new Vector3(0, 0, 90), new Vector3(0, 100, 0));
+                        playerCharacter.ShootProjectile(new Vector3(0, 0, 90), new Vector3(0, 100, 0));
                     else if(Input.GetKeyUp(KeyCode.DownArrow))
-                        playerCharacter.shootProjectile(new Vector3(0, 0, -90), new Vector3(0, -100, 0));                  
+                        playerCharacter.ShootProjectile(new Vector3(0, 0, -90), new Vector3(0, -100, 0));                  
                     else if(Input.GetKeyUp(KeyCode.LeftArrow))
-                        playerCharacter.shootProjectile(new Vector3(0, 0, 180), new Vector3(-100, 0, 0));                 
+                        playerCharacter.ShootProjectile(new Vector3(0, 0, 180), new Vector3(-100, 0, 0));                 
                     else if(Input.GetKeyUp(KeyCode.RightArrow))
-                        playerCharacter.shootProjectile(new Vector3(0, 0, 0), new Vector3(100, 0, 0));
+                        playerCharacter.ShootProjectile(new Vector3(0, 0, 0), new Vector3(100, 0, 0));
 
-                    fireCooldown();
+                    FireCooldown();
                     
                 }
             }
@@ -70,46 +70,46 @@ public class InputHandler : MonoBehaviour
                 if(Input.GetKey(KeyCode.UpArrow)){
 
                     if(Player.weaponEquipped == "Multi Shot"){
-                        playerCharacter.shootProjectile(new Vector3(0, 0, 105), new Vector3(-50, 100, 0));
-                        playerCharacter.shootProjectile(new Vector3(0, 0, 75), new Vector3(50, 100, 0));
+                        playerCharacter.ShootProjectile(new Vector3(0, 0, 105), new Vector3(-50, 100, 0));
+                        playerCharacter.ShootProjectile(new Vector3(0, 0, 75), new Vector3(50, 100, 0));
                     }
-                    playerCharacter.shootProjectile(new Vector3(0, 0, 90), new Vector3(0, 100, 0));
-                    fireCooldown();
+                    playerCharacter.ShootProjectile(new Vector3(0, 0, 90), new Vector3(0, 100, 0));
+                    FireCooldown();
                 }
                 else if(Input.GetKey(KeyCode.DownArrow)){
                     if(Player.weaponEquipped == "Multi Shot"){
-                        playerCharacter.shootProjectile(new Vector3(0, 0, -105), new Vector3(-50, -100, 0));
-                        playerCharacter.shootProjectile(new Vector3(0, 0, -75), new Vector3(50, -100, 0));
+                        playerCharacter.ShootProjectile(new Vector3(0, 0, -105), new Vector3(-50, -100, 0));
+                        playerCharacter.ShootProjectile(new Vector3(0, 0, -75), new Vector3(50, -100, 0));
                     }
-                    playerCharacter.shootProjectile(new Vector3(0, 0, -90), new Vector3(0, -100, 0));
-                    fireCooldown();
+                    playerCharacter.ShootProjectile(new Vector3(0, 0, -90), new Vector3(0, -100, 0));
+                    FireCooldown();
                 }
                 else if(Input.GetKey(KeyCode.LeftArrow)){
                     if(Player.weaponEquipped == "Multi Shot"){
-                        playerCharacter.shootProjectile(new Vector3(0, 0, 195), new Vector3(-100, -50, 0));
-                        playerCharacter.shootProjectile(new Vector3(0, 0, 165), new Vector3(-100, 50, 0));
+                        playerCharacter.ShootProjectile(new Vector3(0, 0, 195), new Vector3(-100, -50, 0));
+                        playerCharacter.ShootProjectile(new Vector3(0, 0, 165), new Vector3(-100, 50, 0));
                     }
-                    playerCharacter.shootProjectile(new Vector3(0, 0, 180), new Vector3(-100, 0, 0));
-                    fireCooldown();        
+                    playerCharacter.ShootProjectile(new Vector3(0, 0, 180), new Vector3(-100, 0, 0));
+                    FireCooldown();        
                 }
                 else if(Input.GetKey(KeyCode.RightArrow)){
                     if(Player.weaponEquipped == "Multi Shot"){
-                        playerCharacter.shootProjectile(new Vector3(0, 0, -15), new Vector3(100, -50, 0));
-                        playerCharacter.shootProjectile(new Vector3(0, 0, 15), new Vector3(100, 50, 0));
+                        playerCharacter.ShootProjectile(new Vector3(0, 0, -15), new Vector3(100, -50, 0));
+                        playerCharacter.ShootProjectile(new Vector3(0, 0, 15), new Vector3(100, 50, 0));
                     }
-                    playerCharacter.shootProjectile(new Vector3(0, 0, 0), new Vector3(100, 0, 0));
-                    fireCooldown();
+                    playerCharacter.ShootProjectile(new Vector3(0, 0, 0), new Vector3(100, 0, 0));
+                    FireCooldown();
                 }
             }
         }
-        playerCharacter.movePlayer(input);
+        playerCharacter.MovePlayer(input);
 
         if(Input.GetKeyDown(KeyCode.Space))
-            playerCharacter.useAbility();
+            playerCharacter.UseAbility();
         
     }
 
-    public void fireCooldown(){
+    public void FireCooldown(){
         if(onCooldown){
             return;
         }

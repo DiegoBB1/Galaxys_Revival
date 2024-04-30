@@ -31,7 +31,7 @@ public class EnemyAIIdleState : EnemyAIState
 
     public override void BeginState()
     {
-        // enemyAI.SetColor(Color.white);
+        
     }
 
     public void MoveRandom(){

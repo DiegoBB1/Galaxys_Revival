@@ -1,64 +1,64 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class Spawner : MonoBehaviour
 {
-    [SerializeField] public GameObject enemy1;
-    [SerializeField] public GameObject enemy2;
-    [SerializeField] public GameObject enemy3;
-    [SerializeField] public GameObject enemy4;
-    [SerializeField] public GameObject enemy5;
-    [SerializeField] public GameObject enemy6;
+    //All alien gameobjects are stored in a list to be called in the spawner
+    [SerializeField] List<GameObject> aliens;
+
+    //All robot gameobjects are stored in a list to be called in the spawner
+    [SerializeField] List<GameObject> robots;
+
+    //High Value Target gameobject to be used for the HVT encounter
+    [SerializeField] public GameObject HVT1;
+    [SerializeField] public GameObject HVT2;
+
     [SerializeField] public Player player;
 
     [SerializeField] int maxEnemyCount = 10;
-    GameObject [] enemies;
+
     public static int currentEnemies = 0;
+    private string enemyType;
+    private int randomEnemy;
+    private int numHVTs = 3;
+    ContactFilter2D contactFilter = new ContactFilter2D();
+
     void Start()
     {
+        contactFilter.NoFilter(); //create filter for the physical object layer and uncomment the spawnenemyrandomy implementation
         currentEnemies = 0;
+        int randNum= Random.Range(0,2);
+        if(randNum == 0)
+            enemyType = "Aliens";
+        else 
+            enemyType = "Robots";
+
+        if(EncounterHandler.currentEncounter == "High Value Targets"){
+            Debug.Log("Spawning HVTs");
+            SpawnHVTs(numHVTs);
+        }
+        
+        
     }
 
     void Update(){
 
     }
 
-    public void spawnEnemies(){
+    public void SpawnEnemies(){
         StartCoroutine(SpawnRoutine());
 
         IEnumerator SpawnRoutine(){
             while(true){
                 yield return new WaitForSeconds(.25f);            
                 if(currentEnemies < maxEnemyCount){
-                //Spawn enemy function, switch case
-                // 6 weakest 50%
-                // 125 same 30%
-                // 34 largest 20%
-                    
-                    int enemyType = Random.Range(0,10);
-
-                    if(enemyType < 5){ //0,1,2,3,4
-                        spawnEnemyRandom(enemy6);
-                    }
-                    else if(enemyType == 5){
-                        spawnEnemyRandom(enemy1);
-                    }
-                    else if(enemyType == 6){
-                        spawnEnemyRandom(enemy2);
-                    }
-                    else if(enemyType == 7){
-                        spawnEnemyRandom(enemy5);
-                    }
-                    else if(enemyType == 8){
-                        spawnEnemyRandom(enemy3);
-                    }
-                    else{
-                        spawnEnemyRandom(enemy4);
-                    }
-
+                    if(enemyType == "Aliens")
+                        SpawnEnemyRandom(aliens.ElementAt(Random.Range(0,aliens.Count)));
+                    else if(enemyType == "Robots")
+                        SpawnEnemyRandom(robots.ElementAt(Random.Range(0,robots.Count)));
                     currentEnemies++;
-
                 }
             }
         }
@@ -75,7 +75,7 @@ public class Spawner : MonoBehaviour
     //     }
     // }
 
-    public void spawnEnemyRandom(GameObject enemy){
+    public void SpawnEnemyRandom(GameObject enemy){
         //Random number is generated to determine what axis to spawn the enemy along.
         float axis = Random.Range(0,2);
         float randomX;
@@ -117,18 +117,43 @@ public class Spawner : MonoBehaviour
         GameObject newEnemy = Instantiate(enemy, new Vector3(randomX, randomY, 0),Quaternion.identity);
 
         //Check if they spawned inside of an object, if so, despawn them
+        // List<Collider2D> results = new List<Collider2D>();
+        // Physics2D.OverlapCircle(transform.position, 2.5f, contactFilter, results);
+        // foreach (var hitCollider in results)
+        // {
+        //     if(hitCollider.gameObject.tag == "Enemy")
+        //         return true;
+            
+        // }
+        // return false;
         List<Collider2D> results = new List<Collider2D>();
         ContactFilter2D filter = new ContactFilter2D().NoFilter();
-        if(newEnemy.GetComponent<BoxCollider2D>() != null && Physics2D.OverlapCollider(newEnemy.GetComponent<BoxCollider2D>(), filter, results) > 0)
+        if(newEnemy.GetComponent<BoxCollider2D>() != null && Physics2D.OverlapCollider(newEnemy.GetComponent<BoxCollider2D>(), filter, results) > 0){
+            Debug.Log("Enemy spawned in wall, calling again");
             Destroy(newEnemy.gameObject);
-        else if(newEnemy.GetComponent<PolygonCollider2D>() != null && Physics2D.OverlapCollider(newEnemy.GetComponent<PolygonCollider2D>(), filter, results) > 0)
+            SpawnEnemyRandom(enemy);
+        }
+        else if(newEnemy.GetComponent<PolygonCollider2D>() != null && Physics2D.OverlapCollider(newEnemy.GetComponent<PolygonCollider2D>(), filter, results) > 0){
+            Debug.Log("Enemy spawned in wall, calling again");
             Destroy(newEnemy.gameObject);
+            SpawnEnemyRandom(enemy);
+        }
         
 
         //Enemy becomes stronger based on how many systems have been completed
         newEnemy.GetComponent<Enemy>().enemyHealth += Player.systemsComplete;
         newEnemy.GetComponent<Enemy>().enemySpeed += Player.systemsComplete;
         newEnemy.GetComponent<Enemy>().damageDealt += Player.systemsComplete;
+    }
+
+    public void SpawnHVTs(int num){
+        for(int i = 0; i < num; i++){
+            int randNum = Random.Range(0,2);
+            if(randNum == 0)
+                SpawnEnemyRandom(HVT1);
+            else 
+                SpawnEnemyRandom(HVT2);
+        }
     }
 
 }

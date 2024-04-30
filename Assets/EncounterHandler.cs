@@ -17,14 +17,24 @@ public class EncounterHandler : MonoBehaviour
 
     [SerializeField] private Player player;
     public static string difficulty;
-
+    public static string currentEncounter;
     public static int totalCaches;
     public int cachesFound;
     public float ambushTime = 90;
     public static bool timerNotStarted = true;
-    public GameObject caches;
+    public GameObject enemyCaches;
+    public GameObject friendlyCaches;
     public GameObject signal;
     public GameObject signalLight;
+    public GameObject terminals;
+    public GameObject zones;
+    public GameObject zone1;
+    public GameObject zone2;
+    public GameObject zone3;
+    public GameObject cages;
+    public GameObject cage1;
+    public GameObject cage2;
+    public GameObject cage3;
     public float lightFadeDuration;
     private int counter = 0;
 
@@ -56,13 +66,21 @@ public class EncounterHandler : MonoBehaviour
             randNum = Random.Range(0,3);
             switch(randNum){
                 case 0:
+                    currentEncounter = "Defeat Enemies";
                     objectiveText.text = "Current Objective: Defeat Enemies (0/" + player.enemiesRequired + " defeated)";
                     break;
                 case 1:
-                    objectiveText.text = "Current Objective: Repair malfunctioning terminals (0/5)";
+                    enemyCaches.SetActive(true);
+                    cachesFound = 0;
+                    totalCaches = 9;
+                    currentEncounter = "Steal Caches";
+                    objectiveText.text = "Current Objective: Find and steal enemy supply caches (0/" + totalCaches + ")";
                     break;
                 case 2:
-                    objectiveText.text = "Current Objective: Deliver supplies to friendly outposts";
+                    friendlyCaches.SetActive(true);
+                    cachesFound = 0;
+                    currentEncounter = "Deliver Supplies";
+                    objectiveText.text = "Current Objective: Collect the nearby supply caches (0/3)";
                     break;
             }
 
@@ -71,15 +89,17 @@ public class EncounterHandler : MonoBehaviour
             randNum = Random.Range(0,3);
             switch(randNum){
                 case 0:
-                    caches.SetActive(true);
-                    cachesFound = 0;
-                    totalCaches = 9;
-                    objectiveText.text = "Current Objective: Find and steal enemy supply caches (0/" + totalCaches + ")";;
+                    terminals.SetActive(true);
+                    currentEncounter = "Repair Terminals";
+                    objectiveText.text = "Current Objective: Repair malfunctioning terminals (0/3)";
                     break;
                 case 1:
+                    currentEncounter = "High Value Targets";
                     objectiveText.text = "Current Objective: Locate and defeat high-value targets (0/3)";
                     break;
                 case 2:
+                    currentEncounter = "Retake Zones";
+                    zones.SetActive(true);
                     objectiveText.text = "Current Objective: Retake enemy controlled zones (0/3)";
                     break;
             }
@@ -89,14 +109,17 @@ public class EncounterHandler : MonoBehaviour
             randNum = Random.Range(0,3);
             switch(randNum){
                 case 0:
-                    EnemyAI.sightDistance += 10;
+                    EnemyAI.addedSight += 10;
                     ambushTime += 10 * Player.systemsComplete;
+                    currentEncounter = "Ambush";
                     objectiveText.text = "Current Objective: Locate the source of the distress call";
                     signal.SetActive(true);
 
                     StartCoroutine(AlarmRoutine());
                     break;
                 case 1:
+                    cages.SetActive(true);
+                    currentEncounter = "Release Prisoners";
                     objectiveText.text = "Current Objective: Release prisoners from enemy bases and clear them a path for exfiltration (0/3)";
                     break;
                 case 2:
@@ -108,33 +131,32 @@ public class EncounterHandler : MonoBehaviour
 
 
         IEnumerator AlarmRoutine(){
-                while(true){
-                    float timer = 0;
-                    //Fades light from white to red
-                    while(timer < lightFadeDuration){
-                        yield return null;
-                        timer+=Time.deltaTime;
-                        signalLight.GetComponent<SpriteRenderer>().color = Color.Lerp(Color.white, Color.red, timer/lightFadeDuration);
-                    }
-                    signalLight.GetComponent<SpriteRenderer>().color = Color.red;
+            while(true){
+                float timer = 0;
+                //Fades light from white to red
+                while(timer < lightFadeDuration){
+                    yield return null;
+                    timer+=Time.deltaTime;
+                    signalLight.GetComponent<SpriteRenderer>().color = Color.Lerp(Color.white, Color.red, timer/lightFadeDuration);
+                }
+                signalLight.GetComponent<SpriteRenderer>().color = Color.red;
 
-                    //Fades light from red to white
-                    timer = 0;
-                    while(timer < lightFadeDuration){
-                        yield return null;
-                        timer+=Time.deltaTime;
-                        signalLight.GetComponent<SpriteRenderer>().color = Color.Lerp(Color.red, Color.white, timer/lightFadeDuration);
-                    }
-                    signalLight.GetComponent<SpriteRenderer>().color = Color.white;
-                    }
-            }
+                //Fades light from red to white
+                timer = 0;
+                while(timer < lightFadeDuration){
+                    yield return null;
+                    timer+=Time.deltaTime;
+                    signalLight.GetComponent<SpriteRenderer>().color = Color.Lerp(Color.red, Color.white, timer/lightFadeDuration);
+                }
+                signalLight.GetComponent<SpriteRenderer>().color = Color.white;
+                }
+        }
     }
 
-    public void encounterFinish(){
+    public void EncounterFinish(){
         int creditsEarned;
         int bonusCredits = 0;
         Time.timeScale = 0;
-        // gameOverMenu.SetActive(true);
         if(GameObject.FindWithTag("Player").GetComponent<Player>().objectiveCompleted == true){
             gameOverText.text = "Mission Complete. Sector Liberated";
             backButtonText.text = "Return to Ship Hub";
@@ -144,7 +166,7 @@ public class EncounterHandler : MonoBehaviour
                 creditsEarned = 75 + (75 * Player.systemsComplete);
             }else{
                 creditsEarned = 100 + (100 * Player.systemsComplete);
-                EnemyAI.sightDistance -= 10;
+                EnemyAI.addedSight -= 10;
             }
 
             //Checks luck stat and gives bonus credits based on the probability
@@ -163,14 +185,14 @@ public class EncounterHandler : MonoBehaviour
             backButtonText.text = "Return to Main Menu";
 
 
-            if(difficulty == "Hard")
-                EnemyAI.sightDistance -= 10;
+            if(currentEncounter == "Ambush")
+                EnemyAI.addedSight -= 10;
 
         }
         gameOverMenu.SetActive(true);
     }
 
-    public void enemyDefeated(){
+    public void EnemyDefeated(){
         //If the player has the credit generation ability active, they are rewarded 50 credits for defeating an enemy
         if(Player.abilityActive && Player.abilityEquipped == "Credit Gen"){
             Debug.Log("10 credits granted");
@@ -188,27 +210,44 @@ public class EncounterHandler : MonoBehaviour
             }
         }
 
-        GameObject.FindWithTag("Player").GetComponent<Player>().enemiesDefeated++;
+        player.enemiesDefeated++;
         Spawner.currentEnemies--;
-        if(difficulty == "Easy")
+        if(currentEncounter == "Defeat Enemies" && !player.objectiveCompleted)
             objectiveText.text = "Current Objective: Defeat Enemies (" + player.enemiesDefeated + "/" + player.enemiesRequired + " defeated)";
         
-        if(player.enemiesDefeated == player.enemiesRequired && difficulty == "Easy"){
-            GameObject.FindWithTag("Player").GetComponent<Player>().objectiveCompleted = true;
-            encounterFinish();
-        }
-    }
-
-    public void cacheCollected(){
-        cachesFound++;
-        objectiveText.text = "Find and steal enemy supply caches (" + cachesFound + "/" + totalCaches + ")";
-        if(cachesFound == totalCaches){
+        if(player.enemiesDefeated == player.enemiesRequired && currentEncounter == "Defeat Enemies"){
             player.objectiveCompleted = true;
-            encounterFinish();
+            objectiveText.text = "Current Objective: Return to teleporter for exfiltration";
+        }
+
+        if(currentEncounter == "Retake Zones" && Player.inZone){
+            //Check each of the zones 
+            if(zone1.GetComponent<Zone>().active)
+                zone1.GetComponent<Zone>().ZoneDefended();
+            if(zone2.GetComponent<Zone>().active)
+                zone2.GetComponent<Zone>().ZoneDefended();
+            if(zone3.GetComponent<Zone>().active)
+                zone3.GetComponent<Zone>().ZoneDefended();
         }
     }
 
-    public void gameOverButton(){
+    public void CacheCollected(){
+        cachesFound++;
+        if(currentEncounter == "Steal Caches"){
+            objectiveText.text = "Find and steal enemy supply caches (" + cachesFound + "/" + totalCaches + ")";
+            if(cachesFound == totalCaches){
+                player.objectiveCompleted = true;
+                objectiveText.text = "Current Objective: Return to teleporter for exfiltration";
+            }
+        }
+        else{
+            objectiveText.text = "Current Objective: Collect the nearby supply caches (" + cachesFound + "/" + (3 - player.cachesDelivered) +")";
+            if(cachesFound + player.cachesDelivered == 3)
+                objectiveText.text = "Current Objective: Deliver the collected supplies to friendly outposts (" + (0 + player.cachesDelivered) + "/3)";
+        }
+    }
+    
+    public void GameOverButton(){
         if(backButtonText.text == "Return to Ship Hub"){
             Time.timeScale = 1;
             SceneManager.LoadScene("ShipHub");

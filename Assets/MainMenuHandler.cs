@@ -19,7 +19,7 @@ public class MainMenuHandler : MonoBehaviour
         // Enemy.enemyHealth -= Player.systemsComplete;
         // Enemy.enemySpeed -= Player.systemsComplete;
         // Enemy.damageDealt -= Player.systemsComplete;
-        EnemyAI.sightDistance -= Player.systemsComplete * 2;
+        EnemyAI.addedSight = 0;
 
         //Reset Player stats and variables
         Player.playerSpeed = 5f;
@@ -34,16 +34,16 @@ public class MainMenuHandler : MonoBehaviour
         ShipHubHandler.planetsLiberated = 0;
         ShipHubHandler.planetsRequired = 3;
 
-        zoomTransition.zoomIn("ShipHub");
+        zoomTransition.ZoomIn("ShipHub");
         //SceneManager.LoadScene("MainScene");
     }
 
-    public void howToPlay(){
-        zoomTransition.swapCanvas(mainCanvas, sideCanvas, mainCamera);
+    public void HowToPlay(){
+        zoomTransition.SwapCanvas(mainCanvas, sideCanvas, mainCamera);
     }
 
-    public void back(){
-        zoomTransition.swapCanvas(sideCanvas, mainCanvas, mainCamera);
+    public void Back(){
+        zoomTransition.SwapCanvas(sideCanvas, mainCanvas, mainCamera);
 
     }
     public void QuitGame(){

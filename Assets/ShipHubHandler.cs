@@ -44,34 +44,38 @@ public class ShipHubHandler : MonoBehaviour
         
     }
 
-    public void planetSelect(){
+    public void PlanetSelect(){
         encounterText.text = "Progress toward Next System: Liberate " + planetsRequired + " Sectors. " + planetsLiberated + "/" + planetsRequired + " Liberated.";
-        zoomTransition.swapCanvas(mainCanvas, planetSelectCanvas, mainCamera);
+        zoomTransition.SwapCanvas(mainCanvas, planetSelectCanvas, mainCamera);
     }
 
-    public void shopSelect(){
+    public void ShopSelect(){
         if(Player.currency < 0)
-             currencyCount.text = "Total Credits: 0";
+            currencyCount.text = "Total Credits: 0";
         else
             currencyCount.text = "Total Credits: " + Player.currency + "c";
-        zoomTransition.swapCanvas(mainCanvas,shopCanvas, mainCamera);
+        zoomTransition.SwapCanvas(mainCanvas,shopCanvas, mainCamera);
     }
 
-    public void returnToMain(){
-        zoomTransition.zoomIn("MainMenu");
+    public void ArmorySelect(){
+
     }
 
-    public void backSelect(){
+    public void ReturnToMain(){
+        zoomTransition.ZoomIn("MainMenu");
+    }
+
+    public void BackSelect(){
         if(shopCanvas.activeSelf){
-            zoomTransition.swapCanvas(shopCanvas, mainCanvas, mainCamera);
+            zoomTransition.SwapCanvas(shopCanvas, mainCanvas, mainCamera);
         }
         else{
-            zoomTransition.swapCanvas(planetSelectCanvas, mainCanvas, mainCamera);
+            zoomTransition.SwapCanvas(planetSelectCanvas, mainCanvas, mainCamera);
         }
         Tooltip.hidden = true;
     }
 
-    public void planetLaunch(){
+    public void PlanetLaunch(){
         if(EventSystem.current.currentSelectedGameObject.name == "LaunchEasyButton"){
            EncounterHandler.difficulty = "Easy";
         }
@@ -84,12 +88,12 @@ public class ShipHubHandler : MonoBehaviour
 
         //If you have completed enough encounters to go to the next system, you are unable to stay in the current system.
         if(planetsLiberated != planetsRequired)
-            zoomTransition.zoomIn("MainScene");
+            zoomTransition.ZoomIn("MainScene");
         else
             Debug.Log("You have liberated enough sectors, launch to the next system!");
     }
 
-    public void systemLaunch(){
+    public void SystemLaunch(){
         // If player has completed the required number of encounters, they are able to to travel to the next system.
         // Once a new system is launched, a transition will play and bring the player back to the ship hub.
         // The ship hub will have refreshed shop and planets, counter to travel to next system is also reset to 0. All
@@ -106,7 +110,7 @@ public class ShipHubHandler : MonoBehaviour
             SceneManager.LoadScene("ShipHub");
 
             //Increase sight distance across the board on system launch, other variables are increased on instance creation
-            EnemyAI.sightDistance += 2;
+            EnemyAI.addedSight += 2;
 
         }
         else{

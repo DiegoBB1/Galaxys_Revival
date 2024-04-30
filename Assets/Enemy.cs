@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class Enemy : MonoBehaviour
 {
-
+    [SerializeField] public int sightDistance;
     public int enemyHealth;
     public int damageDealt;
     public float enemySpeed;
@@ -16,23 +16,37 @@ public class Enemy : MonoBehaviour
     private bool speedReduced = false;
     private bool damageReduced = false;
     private bool poisoned = false;
-
+    GameObject encounterHandler;
 
     // Start is called before the first frame update
+    void Awake(){
+        rb = GetComponent<Rigidbody2D>();
+    }
     void Start()
     {
+        encounterHandler = GameObject.Find("EncounterHandler");
         enemySR = GetComponent<SpriteRenderer>();
-        rb = GetComponent<Rigidbody2D>();
     }
 
     public void OnCollisionStay2D(Collision2D collision){
         if(collision.gameObject.tag == "Player" && !Player.isImmune){
-            collision.gameObject.GetComponent<Player>().damageTaken(damageDealt);
+            collision.gameObject.GetComponent<Player>().DamageTaken(damageDealt);
         }
     }
 
     //Method handles debuffs being applied to the enemy when they take damage
-    public void damageTaken(){
+    public void DamageTaken(){
+        if(enemyHealth <= 0){
+                Destroy(gameObject);
+
+                if(gameObject.tag == "HVT"){
+                    Player player = GameObject.FindWithTag("Player").GetComponent<Player>();
+                    player.HvtDefeated();
+                }
+                else
+                    encounterHandler.GetComponent<EncounterHandler>().EnemyDefeated();
+        }
+
         SpriteRenderer sr = GetComponent<SpriteRenderer>();
 
         //Checks if player has slowing projectiles, lowers speed if so
@@ -76,7 +90,11 @@ public class Enemy : MonoBehaviour
             }
         }
         else if(Player.weaponEquipped != "Poison Shot"){
-            sr.color = Color.red;
+            if(Player.weaponEquipped == "Explosive Shot")
+                sr.color = Color.black;
+            else
+                sr.color = Color.red;
+
             StartCoroutine(damageEffect());
 
             IEnumerator damageEffect(){
@@ -101,7 +119,7 @@ public class Enemy : MonoBehaviour
                     if(enemyHealth <= 0){
                         Destroy(gameObject);
                         EncounterHandler encounterHandler = GameObject.Find("EncounterHandler").GetComponent<EncounterHandler>();
-                        encounterHandler.enemyDefeated();
+                        encounterHandler.EnemyDefeated();
                     }            
                 }
                 poisoned = false;
@@ -123,13 +141,15 @@ public class Enemy : MonoBehaviour
 
     public void MoveCreatureTransform(Vector3 direction)
     {
-        if(direction.x > 0){
-            enemySR.flipX = true;
-        }
-        else if(direction.x < 0){
-            enemySR.flipX = false;
-        }
+        if(direction != null){
+            if(direction.x > 0){
+                enemySR.flipX = true;
+            }
+            else if(direction.x < 0){
+                enemySR.flipX = false;
+            }
 
-        rb.velocity = direction * enemySpeed;
+            rb.velocity = direction * enemySpeed;
+        }
     }
 }

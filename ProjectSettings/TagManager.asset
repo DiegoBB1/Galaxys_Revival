@@ -8,6 +8,12 @@ TagManager:
   - Spawner
   - Signal
   - Cache
+  - EmptyCache
+  - Terminal
+  - Zone
+  - Cage
+  - HVT
+  - Teleporter
   layers:
   - Default
   - TransparentFX

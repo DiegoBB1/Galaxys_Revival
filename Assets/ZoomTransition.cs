@@ -19,7 +19,7 @@ public class ZoomTransition : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        zoomOut();
+        ZoomOut();
     }
 
     //Only update on main game scene or when player initialized.
@@ -31,7 +31,7 @@ public class ZoomTransition : MonoBehaviour
 
     //zoomIn uses a coroutine to gradually change the fov from the current fov to 0. This is called before transitioning into a new scene.
     //After the zoom in effect finishes, the next scene is loaded.
-    public void zoomIn(string sceneName){
+    public void ZoomIn(string sceneName){
         StartCoroutine(zoomInRoutine());
         IEnumerator zoomInRoutine(){
             float timer = 0;
@@ -49,7 +49,7 @@ public class ZoomTransition : MonoBehaviour
 
     //zoomOut uses a coroutine to gradually change the fov from 0 to the intended fov. 
     //This is called when a new scene is loaded to zoom out the camera and create a somewhat smooth transition.
-    public void zoomOut(){
+    public void ZoomOut(){
         StartCoroutine(zoomOutRoutine());
         IEnumerator zoomOutRoutine(){
             float timer = 0;
@@ -62,19 +62,14 @@ public class ZoomTransition : MonoBehaviour
             }
             mainCamera.fieldOfView = fov;
 
-            // //Could add fade in effect for UI, for now it appears after zoomOutTime seconds
-            // if(UI != null){
-            //     UI.SetActive(true);
-            // }
-
-            if(SceneManager.GetActiveScene().name == "MainScene" && EncounterHandler.difficulty != "Hard"){
+            if(SceneManager.GetActiveScene().name == "MainScene" && EncounterHandler.currentEncounter != "Ambush"){
                 Spawner spawner = GameObject.FindWithTag("Spawner").GetComponent<Spawner>();
-                spawner.spawnEnemies();
+                spawner.SpawnEnemies();
             }
         }
     }
 
-    public void swapCanvas(GameObject sourceCanvas, GameObject destCanvas, Camera zoomCamera){
+    public void SwapCanvas(GameObject sourceCanvas, GameObject destCanvas, Camera zoomCamera){
         StartCoroutine(swapRoutine());
 
         IEnumerator swapRoutine(){

@@ -26,7 +26,7 @@ public class Tooltip : MonoBehaviour
         }
     }
 
-    private void showTooltip(string tipString){
+    private void ShowTooltip(string tipString){
         hidden = false;
         gameObject.SetActive(true);
         tooltipText.text = tipString;
@@ -34,10 +34,10 @@ public class Tooltip : MonoBehaviour
         Vector2 backgroundSize = new Vector2(tooltipText.preferredWidth + padding * 2, tooltipText.preferredHeight + padding * 2);
         tooltipBackground.sizeDelta = backgroundSize; 
 
-        hideTooltip();
+        HideTooltip();
     }
 
-    private void hideTooltip(){
+    private void HideTooltip(){
         StartCoroutine(fadeRoutine());
 
         IEnumerator fadeRoutine(){
@@ -47,8 +47,8 @@ public class Tooltip : MonoBehaviour
         }
     }
 
-    public static void showTooltip_Static(string tipString){
-        instance.showTooltip(tipString);
+    public static void ShowTooltip_Static(string tipString){
+        instance.ShowTooltip(tipString);
     }
 
     // public static void hideTooltip_Static(){
