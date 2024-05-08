@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -15,6 +16,9 @@ public class ZoomTransition : MonoBehaviour
     [SerializeField] private float fov = 5;
     [SerializeField] private Player player;
     [SerializeField] private GameObject UI;
+    [SerializeField] public Stats_UI stats_UI;
+    [SerializeField] public Inventory_UI inventory_UI;
+    [SerializeField] ShipHubHandler shipHubHandler;
 
     // Start is called before the first frame update
     void Start()
@@ -32,6 +36,8 @@ public class ZoomTransition : MonoBehaviour
     //zoomIn uses a coroutine to gradually change the fov from the current fov to 0. This is called before transitioning into a new scene.
     //After the zoom in effect finishes, the next scene is loaded.
     public void ZoomIn(string sceneName){
+        if(sceneName == "ShipHub" && shipHubHandler != null && shipHubHandler.GetComponent<AudioSource>().isPlaying)
+            zoomInTime = 4;
         StartCoroutine(zoomInRoutine());
         IEnumerator zoomInRoutine(){
             float timer = 0;
@@ -62,7 +68,7 @@ public class ZoomTransition : MonoBehaviour
             }
             mainCamera.fieldOfView = fov;
 
-            if(SceneManager.GetActiveScene().name == "MainScene" && EncounterHandler.currentEncounter != "Ambush"){
+            if(SceneManager.GetActiveScene().name == "MainScene" && EncounterHandler.currentEncounter != "Ambush" && EncounterHandler.currentEncounter != "High Value Targets"){
                 Spawner spawner = GameObject.FindWithTag("Spawner").GetComponent<Spawner>();
                 spawner.SpawnEnemies();
             }
@@ -84,7 +90,14 @@ public class ZoomTransition : MonoBehaviour
             zoomCamera.fieldOfView = 0;
             sourceCanvas.SetActive(false);
             destCanvas.SetActive(true);
-
+            if(destCanvas.name == "ArmoryCanvas"){
+                stats_UI.FillStats();
+                inventory_UI.FillInventory(ShipHubHandler.gridTypes.ElementAt(ShipHubHandler.currentGrid));
+                shipHubHandler.ArrowClicked(true);
+                shipHubHandler.weaponImage.sprite = inventory_UI.GetEquippedSprite("Weapon");
+                shipHubHandler.passiveImage.sprite = inventory_UI.GetEquippedSprite("Passive");
+                shipHubHandler.abilityImage.sprite = inventory_UI.GetEquippedSprite("Ability");
+            }
             timer = 0;
             while (timer < zoomOutTime){
                 float t = timer/zoomOutTime;

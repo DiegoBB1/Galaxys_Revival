@@ -6,26 +6,30 @@ using UnityEngine;
 public class Enemy : MonoBehaviour
 {
     [SerializeField] public int sightDistance;
-    public int enemyHealth;
-    public int damageDealt;
-    public float enemySpeed;
-    SpriteRenderer enemySR;
-
+    [SerializeField] public int baseHealth;
+    [SerializeField] public int baseDamage;
+    [SerializeField] public int baseSpeed;
+    [SerializeField] public int enemyHealth;
+    [SerializeField] public int damageDealt;
+    [SerializeField] public float enemySpeed;
+    public SpriteRenderer enemySR;
     Rigidbody2D rb;
-
-    private bool speedReduced = false;
-    private bool damageReduced = false;
-    private bool poisoned = false;
-    GameObject encounterHandler;
+    public bool speedReduced = false;
+    public bool damageReduced = false;
+    public bool poisoned = false;
+    EncounterHandler encounterHandler;
+    Spawner spawner;
 
     // Start is called before the first frame update
     void Awake(){
         rb = GetComponent<Rigidbody2D>();
+        enemySR = GetComponent<SpriteRenderer>();
     }
     void Start()
     {
-        encounterHandler = GameObject.Find("EncounterHandler");
-        enemySR = GetComponent<SpriteRenderer>();
+
+        encounterHandler = GameObject.Find("EncounterHandler").GetComponent<EncounterHandler>();
+        spawner = GameObject.Find("EnemySpawner").GetComponent<Spawner>();
     }
 
     public void OnCollisionStay2D(Collision2D collision){
@@ -37,14 +41,14 @@ public class Enemy : MonoBehaviour
     //Method handles debuffs being applied to the enemy when they take damage
     public void DamageTaken(){
         if(enemyHealth <= 0){
-                Destroy(gameObject);
-
                 if(gameObject.tag == "HVT"){
                     Player player = GameObject.FindWithTag("Player").GetComponent<Player>();
                     player.HvtDefeated();
+                    Destroy(gameObject);
                 }
                 else
-                    encounterHandler.GetComponent<EncounterHandler>().EnemyDefeated();
+                    IsDefeated();
+                
         }
 
         SpriteRenderer sr = GetComponent<SpriteRenderer>();
@@ -55,7 +59,9 @@ public class Enemy : MonoBehaviour
                 sr.color = Color.cyan;
                 enemySpeed -= 1.5f;
                 speedReduced = true;
-                StartCoroutine(slowRoutine());
+
+                if(gameObject.activeSelf)
+                    StartCoroutine(slowRoutine());
 
                 IEnumerator slowRoutine(){
                     yield return new WaitForSeconds(5);
@@ -77,7 +83,9 @@ public class Enemy : MonoBehaviour
 
                 sr.color = Color.yellow;
                 damageReduced = true;
-                StartCoroutine(weakenRoutine());
+
+                if(gameObject.activeSelf)
+                    StartCoroutine(weakenRoutine());
 
                 IEnumerator weakenRoutine(){
                     yield return new WaitForSeconds(5);
@@ -95,7 +103,8 @@ public class Enemy : MonoBehaviour
             else
                 sr.color = Color.red;
 
-            StartCoroutine(damageEffect());
+            if(gameObject.activeSelf)
+                StartCoroutine(damageEffect());
 
             IEnumerator damageEffect(){
                 yield return new WaitForSeconds(1);
@@ -109,18 +118,17 @@ public class Enemy : MonoBehaviour
             poisoned = true;
             sr.color = Color.green;
 
-            StartCoroutine(SpawnRoutine());
+            if(gameObject.activeSelf)
+                StartCoroutine(SpawnRoutine());
 
             IEnumerator SpawnRoutine(){
                 int i;
                 for(i = 0; i < 3; i++){
                     yield return new WaitForSeconds(2.0f);
                     enemyHealth--;
-                    if(enemyHealth <= 0){
-                        Destroy(gameObject);
-                        EncounterHandler encounterHandler = GameObject.Find("EncounterHandler").GetComponent<EncounterHandler>();
-                        encounterHandler.EnemyDefeated();
-                    }            
+                    if(enemyHealth <= 0)
+                        IsDefeated();
+                              
                 }
                 poisoned = false;
                 sr.color = Color.white;
@@ -128,6 +136,17 @@ public class Enemy : MonoBehaviour
 
         }
 
+    }
+
+    public void IsDefeated(){
+        spawner.currentEnemies--;
+        spawner.ActiveEnemies.Remove(gameObject);
+        spawner.InactiveEnemies.Add(gameObject);
+        gameObject.SetActive(false);
+
+        //Handles case where enemy is despawned for dying vs despawned for being too far from player.
+        if(enemyHealth <= 0)
+            encounterHandler.EnemyDefeated();
     }
 
     public void MoveToward(Vector3 target){

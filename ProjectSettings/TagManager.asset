@@ -14,6 +14,9 @@ TagManager:
   - Cage
   - HVT
   - Teleporter
+  - Weapon
+  - Passive
+  - Ability
   layers:
   - Default
   - TransparentFX
@@ -21,7 +24,7 @@ TagManager:
   - Physical Object
   - Water
   - UI
-  - 
+  - PlayerProj
   - 
   - 
   - 

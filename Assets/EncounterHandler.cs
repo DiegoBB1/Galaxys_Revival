@@ -1,65 +1,100 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Tilemaps;
+using UnityEngine.UI;
 
 public class EncounterHandler : MonoBehaviour
 {
     public GameObject gameOverMenu;
-    public GameObject stageOne;
     [SerializeField] private TextMeshProUGUI gameOverText;
     [SerializeField] private TextMeshProUGUI gameOverDesc;
     [SerializeField] private TextMeshProUGUI backButtonText;
     [SerializeField] private TextMeshProUGUI healthText;
     [SerializeField] public TextMeshProUGUI objectiveText;
-
     [SerializeField] private Player player;
     public static string difficulty;
     public static string currentEncounter;
-    public static int totalCaches;
-    public int cachesFound;
-    public float ambushTime = 90;
-    public static bool timerNotStarted = true;
-    public GameObject enemyCaches;
-    public GameObject friendlyCaches;
-    public GameObject signal;
+    public int totalCaches = 9;
+    public int cachesFound = 0;
+    public float ambushTime = 45;
+    public static bool timerNotStarted;
     public GameObject signalLight;
-    public GameObject terminals;
-    public GameObject zones;
     public GameObject zone1;
     public GameObject zone2;
     public GameObject zone3;
-    public GameObject cages;
-    public GameObject cage1;
-    public GameObject cage2;
-    public GameObject cage3;
     public float lightFadeDuration;
     private int counter = 0;
-
+    [SerializeField] public TextMeshProUGUI abilityText;
+    [SerializeField] public Image abilityImage;
+    [SerializeField] private GameObject abilityBar;
+    [SerializeField] List<Sprite> abilityIcons;
+    private AudioSource audioSource;
+    [SerializeField] List<AudioClip> encounterMusic;
+    public static string planetType;
+    [SerializeField] public GameObject pauseMenu;
+    private bool isPaused = false;
+    [SerializeField] List<GameObject> planetTilesets;
+    [SerializeField] List<GameObject> teleporters;
+    [SerializeField] List<GameObject> supplies;
+    [SerializeField] List<GameObject> terminals;
+    [SerializeField] GameObject zones;
+    [SerializeField] List<GameObject> enemyCaches;
+    [SerializeField] GameObject beacon;
+    [SerializeField] List<GameObject> cages;
+    private int planetNum;
+    public void Awake(){
+        audioSource = GetComponent<AudioSource>();  
+        audioSource.PlayOneShot(encounterMusic.ElementAt(Random.Range(0,encounterMusic.Count)));
+        if(planetType == "Grass"){
+            planetTilesets.ElementAt(0).SetActive(true);
+            planetNum = 0;
+            player.transform.position = new Vector3(-12,-40,0);
+        }
+        else if(planetType == "Rock"){
+            planetTilesets.ElementAt(1).SetActive(true);
+            planetNum = 1;
+            player.transform.position = new Vector3(-96,-13,0);
+        }
+        else if(planetType == "Desert"){
+            planetTilesets.ElementAt(2).SetActive(true);
+            planetNum = 2;
+            player.transform.position = new Vector3(91,-38,0);
+        }
+        else if(planetType == "Snow"){
+            planetTilesets.ElementAt(3).SetActive(true);
+            planetNum = 3;
+            player.transform.position = new Vector3(57,45,0);
+        }
+        
+        teleporters.ElementAt(planetNum).SetActive(true);
+    }
     // Start is called before the first frame update
     void Start()
-    {
-
-        // Randomly selects a map for the encounter
-        int randNum;
-        randNum = Random.Range(0,4);
-        switch(randNum){
-            case 0:
-                stageOne.SetActive(true);
-                break;
-            case 1:
-                stageOne.SetActive(true);
-                break;
-            case 2:
-                stageOne.SetActive(true);
-                break;
-            case 3:
-                stageOne.SetActive(true);
-                break;
+    {   
+        if(Player.abilityEquipped != "None"){
+            abilityBar.SetActive(true);
+            //Add sprite to ability image
+            switch(Player.abilityEquipped){
+                case "Cloaking Device":
+                    abilityImage.sprite = abilityIcons.ElementAt(0);
+                    break;
+                case "Time Slow":
+                    abilityImage.sprite = abilityIcons.ElementAt(1);
+                    break;
+                case "Credit Gen":
+                    abilityImage.sprite = abilityIcons.ElementAt(2);
+                    break;
+                case "Health Gen":
+                    abilityImage.sprite = abilityIcons.ElementAt(3);
+                    break;
+            }
         }
         // Randomly selects an encounter based on the difficulty selected
+        int randNum;
         player = GameObject.FindWithTag("Player").GetComponent<Player>();
 
         if(difficulty == "Easy"){
@@ -67,18 +102,15 @@ public class EncounterHandler : MonoBehaviour
             switch(randNum){
                 case 0:
                     currentEncounter = "Defeat Enemies";
-                    objectiveText.text = "Current Objective: Defeat Enemies (0/" + player.enemiesRequired + " defeated)";
+                    objectiveText.text = "Current Objective: Defeat Enemies (0/" + Player.enemiesRequired + " defeated)";
                     break;
                 case 1:
-                    enemyCaches.SetActive(true);
-                    cachesFound = 0;
-                    totalCaches = 9;
+                    enemyCaches.ElementAt(planetNum).SetActive(true);
                     currentEncounter = "Steal Caches";
                     objectiveText.text = "Current Objective: Find and steal enemy supply caches (0/" + totalCaches + ")";
                     break;
                 case 2:
-                    friendlyCaches.SetActive(true);
-                    cachesFound = 0;
+                    supplies.ElementAt(planetNum).SetActive(true);
                     currentEncounter = "Deliver Supplies";
                     objectiveText.text = "Current Objective: Collect the nearby supply caches (0/3)";
                     break;
@@ -89,7 +121,7 @@ public class EncounterHandler : MonoBehaviour
             randNum = Random.Range(0,3);
             switch(randNum){
                 case 0:
-                    terminals.SetActive(true);
+                    terminals.ElementAt(planetNum).SetActive(true);
                     currentEncounter = "Repair Terminals";
                     objectiveText.text = "Current Objective: Repair malfunctioning terminals (0/3)";
                     break;
@@ -101,29 +133,63 @@ public class EncounterHandler : MonoBehaviour
                     currentEncounter = "Retake Zones";
                     zones.SetActive(true);
                     objectiveText.text = "Current Objective: Retake enemy controlled zones (0/3)";
+
+                    switch(planetNum){
+                        case 0:
+                            zone1.transform.position = new Vector3(-24, 5,0);
+                            zone2.transform.position = new Vector3(87, 8,0);
+                            zone3.transform.position = new Vector3(3, 48,0);
+                            break;
+                        case 1:
+                            zone1.transform.position = new Vector3(60, 32,0);
+                            zone2.transform.position = new Vector3(17.5f, 1.5f, 0);
+                            zone3.transform.position = new Vector3(-64, 21, 0);
+                            break;
+                        case 2:
+                            zone1.transform.position = new Vector3(-30, 15, 0);
+                            zone2.transform.position = new Vector3(3, 48, 0);
+                            zone3.transform.position = new Vector3(73, 8, 0);
+                            break;
+                        case 3:
+                            zone1.transform.position = new Vector3(63, -16, 0);
+                            zone2.transform.position = new Vector3(-57, -14, 0);
+                            zone3.transform.position = new Vector3(-5.5f, 8.5f, 0);
+                            break;
+                    }
                     break;
             }
 
         }
         else if(difficulty == "Hard"){
-            randNum = Random.Range(0,3);
+            randNum = Random.Range(0,2);
             switch(randNum){
                 case 0:
+                    timerNotStarted = true;
                     EnemyAI.addedSight += 10;
                     ambushTime += 10 * Player.systemsComplete;
                     currentEncounter = "Ambush";
                     objectiveText.text = "Current Objective: Locate the source of the distress call";
-                    signal.SetActive(true);
-
+                    switch(planetNum){
+                        case 0:
+                            beacon.transform.position = new Vector3(14, -2, -7);
+                            break;
+                        case 1:
+                            beacon.transform.position = new Vector3(29, 2, -7);
+                            break;
+                        case 2:
+                            beacon.transform.position = new Vector3(-14, -1, -7);
+                            break;
+                        case 3:
+                            beacon.transform.position = new Vector3(-5, 11, -7);
+                            break;
+                    }                   
+                    beacon.SetActive(true);
                     StartCoroutine(AlarmRoutine());
                     break;
                 case 1:
-                    cages.SetActive(true);
+                    cages.ElementAt(planetNum).SetActive(true);
                     currentEncounter = "Release Prisoners";
                     objectiveText.text = "Current Objective: Release prisoners from enemy bases and clear them a path for exfiltration (0/3)";
-                    break;
-                case 2:
-                    objectiveText.text = "Current Objective: Destroy the enemy stronghold";
                     break;
             }
 
@@ -153,11 +219,15 @@ public class EncounterHandler : MonoBehaviour
         }
     }
 
-    public void EncounterFinish(){
+    public void EncounterFinish(bool objComplete){
+        audioSource.volume = .25f;
+        Spawner spawner = GameObject.Find("EnemySpawner").GetComponent<Spawner>();
+        spawner.ActiveEnemies.Clear();
+        spawner.InactiveEnemies.Clear();    
         int creditsEarned;
         int bonusCredits = 0;
         Time.timeScale = 0;
-        if(GameObject.FindWithTag("Player").GetComponent<Player>().objectiveCompleted == true){
+        if(objComplete == true){
             gameOverText.text = "Mission Complete. Sector Liberated";
             backButtonText.text = "Return to Ship Hub";
             if(difficulty == "Easy"){
@@ -206,16 +276,15 @@ public class EncounterHandler : MonoBehaviour
                 Debug.Log("1 HP granted");
                 Player.playerHealth = (Player.playerHealth < Player.maxHealth) ? Player.playerHealth + 1: Player.maxHealth;
                 counter = 0;
-                healthText.text = "HP: " + Player.playerHealth;
+                healthText.text = ": " + Player.playerHealth;
             }
         }
 
         player.enemiesDefeated++;
-        Spawner.currentEnemies--;
         if(currentEncounter == "Defeat Enemies" && !player.objectiveCompleted)
-            objectiveText.text = "Current Objective: Defeat Enemies (" + player.enemiesDefeated + "/" + player.enemiesRequired + " defeated)";
+            objectiveText.text = "Current Objective: Defeat Enemies (" + player.enemiesDefeated + "/" + Player.enemiesRequired + " defeated)";
         
-        if(player.enemiesDefeated == player.enemiesRequired && currentEncounter == "Defeat Enemies"){
+        if(player.enemiesDefeated == Player.enemiesRequired && currentEncounter == "Defeat Enemies"){
             player.objectiveCompleted = true;
             objectiveText.text = "Current Objective: Return to teleporter for exfiltration";
         }
@@ -234,7 +303,7 @@ public class EncounterHandler : MonoBehaviour
     public void CacheCollected(){
         cachesFound++;
         if(currentEncounter == "Steal Caches"){
-            objectiveText.text = "Find and steal enemy supply caches (" + cachesFound + "/" + totalCaches + ")";
+            objectiveText.text = "Current Objective: Find and steal enemy supply caches (" + cachesFound + "/" + totalCaches + ")";
             if(cachesFound == totalCaches){
                 player.objectiveCompleted = true;
                 objectiveText.text = "Current Objective: Return to teleporter for exfiltration";
@@ -248,14 +317,45 @@ public class EncounterHandler : MonoBehaviour
     }
     
     public void GameOverButton(){
-        if(backButtonText.text == "Return to Ship Hub"){
-            Time.timeScale = 1;
+        Time.timeScale = 1;
+        if(backButtonText.text == "Return to Ship Hub")
             SceneManager.LoadScene("ShipHub");
+        else
+            SceneManager.LoadScene("MainMenu");      
+    }
+    
+    public void Pause(){
+        if(!player.exfiltrated){
+            //If the game is already paused and the pause button is clicked, the game will be unpaused
+            if(isPaused){
+                pauseMenu.SetActive(false);
+                isPaused = false;
+                audioSource.volume = .5f;
+                if(Player.abilityEquipped == "Time Slow" && Player.abilityActive)
+                    Time.timeScale = .5f;
+                else
+                    Time.timeScale = 1;
+                    
+                
+            }
+            //Otherwise, if the game is unpaused, then it will be paused
+            else{
+                pauseMenu.SetActive(true);
+                isPaused = true;
+                Time.timeScale = 0;
+                audioSource.volume = .25f;
+            }
         }
-        else{
-            Time.timeScale = 1;
-            SceneManager.LoadScene("MainMenu");  
-        }        
+    }
+
+    public void MainMenu(){
+        Player.isImmune = true;
+        Time.timeScale = 1f;
+        SceneManager.LoadScene("MainMenu");
+    }
+
+    public void Quit(){
+        Application.Quit();
     }
 
 }

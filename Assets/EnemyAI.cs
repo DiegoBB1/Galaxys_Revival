@@ -48,11 +48,9 @@ public class EnemyAI : MonoBehaviour
 
     public Player GetTarget(){
         //If enemy is too far away from the player, they will be despawned
-        if(myEnemy.tag != "HVT" && Vector3.Distance(myEnemy.transform.position,player.transform.position) > 55f){
-            Spawner.currentEnemies--;
-            Destroy(myEnemy.gameObject);
-            
-        }
+        if(myEnemy.tag != "HVT" && Vector3.Distance(myEnemy.transform.position,player.transform.position) > 55f)
+            myEnemy.IsDefeated();
+        
 
         //are we close enough?
         if(Vector3.Distance(myEnemy.transform.position,player.transform.position) > myEnemy.sightDistance + addedSight){

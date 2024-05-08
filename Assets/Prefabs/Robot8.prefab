@@ -172,10 +172,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 35a28b03d80627347a0a736a0841d4a2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sightDistance: 0
+  sightDistance: 7
+  baseHealth: 4
+  baseDamage: 3
+  baseSpeed: 2
   enemyHealth: 4
   damageDealt: 3
   enemySpeed: 2
+  enemySR: {fileID: 0}
+  speedReduced: 0
+  damageReduced: 0
+  poisoned: 0
 --- !u!114 &6381656560073796848
 MonoBehaviour:
   m_ObjectHideFlags: 0

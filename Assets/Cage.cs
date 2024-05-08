@@ -8,18 +8,6 @@ public class Cage : MonoBehaviour
     public bool cageOpen = false;
     [SerializeField] Sprite openCage;
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
     public void CageOpened(){
         Debug.Log("Cage opened, prisoner freed");
         GetComponent<SpriteRenderer>().sprite = openCage;

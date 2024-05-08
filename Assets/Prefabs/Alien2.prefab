@@ -127,11 +127,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 35a28b03d80627347a0a736a0841d4a2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  sightDistance: 6
+  baseHealth: 1
+  baseDamage: 1
+  baseSpeed: 4
   enemyHealth: 1
   damageDealt: 1
   enemySpeed: 4
-  body: {fileID: 0}
-  velocity: {x: 0, y: 0, z: 0}
+  enemySR: {fileID: 0}
+  speedReduced: 0
+  damageReduced: 0
+  poisoned: 0
 --- !u!61 &870060155087196183
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -194,4 +200,3 @@ MonoBehaviour:
   obstacles:
     serializedVersion: 2
     m_Bits: 8
-  gridSize: 1

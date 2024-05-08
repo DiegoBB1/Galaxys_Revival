@@ -1,14 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 
 public class Projectile : MonoBehaviour
 {
-
-    GameObject encounterHandler;
-    SpriteRenderer spriteRenderer; 
-
     // Start is called before the first frame update
     void Start()
     {
@@ -21,19 +18,27 @@ public class Projectile : MonoBehaviour
         
     }
     
-    public void OnTriggerEnter2D(Collider2D other){
+    public void OnCollisionEnter2D(Collision2D other){
         if(other.gameObject.tag == "Enemy" || other.gameObject.tag == "HVT"){
             if(Player.weaponEquipped != "Pierce Shot"){
                 Destroy(gameObject);
             }
 
-            if(Player.weaponEquipped == "Explosive Shot")
+            if(Player.weaponEquipped == "Explosive Shot"){
+                Player player = GameObject.FindWithTag("Player").GetComponent<Player>();
+                player.audioSource.PlayOneShot(player.explosiveSFX.ElementAt(Random.Range(0,player.explosiveSFX.Count)));
                 ExplosionDamage(transform.position, 2.5f);
+            }
             else{
-                other.GetComponent<Enemy>().enemyHealth -= Player.strength + Player.chargeLevel;
-                other.GetComponent<Enemy>().DamageTaken();
+                other.gameObject.GetComponent<Enemy>().enemyHealth -= Player.strength;
+                if(Player.weaponEquipped == "Charge Shot")
+                    other.gameObject.GetComponent<Enemy>().enemyHealth -= Player.chargeLevel;
+
+                other.gameObject.GetComponent<Enemy>().DamageTaken();
             }
         }
+        else
+            Destroy(gameObject);
     }
 
     void ExplosionDamage(Vector3 center, float radius)

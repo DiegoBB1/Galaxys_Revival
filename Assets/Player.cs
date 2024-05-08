@@ -9,13 +9,13 @@ public class Player : MonoBehaviour
 {
     // Player Stats
     public static int currency = 150;
-    public static float playerHealth = 3;
+    public static int playerHealth = 3;
     public static int maxHealth = 3;
-    public static float playerSpeed = 5f;
+    public static int playerSpeed = 5;
     public static int strength = 1;
     public static int defense = 0;
     public static float luck = .1f;
-    public static float projectileSpeed = 3f; //Orig 5
+    public static float projectileSpeed = 3f; //Orig 5 CHANGE TO VELOCITY
     public static float projectileCooldown = 1;
     public static bool isImmune = false;   
 
@@ -41,7 +41,7 @@ public class Player : MonoBehaviour
     //Encounter/Game Information
     public bool objectiveCompleted = false; 
     public int enemiesDefeated = 0;
-    [SerializeField] public int enemiesRequired = 20;
+    public static int enemiesRequired; //20 to start
     public static int systemsComplete = 0;
     public static int totalPlanets = 0;
     public int cachesDelivered = 0;
@@ -58,24 +58,41 @@ public class Player : MonoBehaviour
 
     [SerializeField] private TextMeshProUGUI healthText;
     Rigidbody2D rb;    
-    EncounterHandler encounterHandler;
+    public EncounterHandler encounterHandler;
     SpriteRenderer spriteRenderer;
     [SerializeField] Sprite activeTerminalSprite;
 
     private float fixedDeltaTime;
+    public bool exfiltrated;
+    [SerializeField] public List<AudioClip> explosiveSFX;
+    [SerializeField] public List<AudioClip> chargeSFX;
+    [SerializeField] AudioClip defaultWeaponSFX;
+    [SerializeField] AudioClip altWeaponSFX;
+    [SerializeField] AudioClip damageSFX;
+    public AudioSource audioSource;
+
+    public void Awake(){
+        audioSource = GetComponent<AudioSource>(); 
+    }
 
     // Start is called before the first frame update
     void Start()
     {
+        //Reset Player variables on encounter start
+        isImmune = false;
+        passiveAvailable = true;
+        abilityAvailable = true;
+        abilityActive = false;
+        numHvts = 0;
+        inZone = false;
         fixedDeltaTime = Time.fixedDeltaTime;
         spriteRenderer = GetComponent<SpriteRenderer>();
         rb = GetComponent<Rigidbody2D>();
         encounterHandler = GameObject.Find("EncounterHandler").GetComponent<EncounterHandler>();
-        isImmune = false;
-        healthText.text = "HP: " + playerHealth;
-        objectiveCompleted = false;
+        healthText.text = ": " + playerHealth;
+        
         enemiesRequired = 20 + 10 * systemsComplete;
-        numHvts = 0;
+        
         if(passiveEquipped == "Shield")
             spriteRenderer.color = Color.cyan;
     }
@@ -88,31 +105,41 @@ public class Player : MonoBehaviour
         GameObject newProjectile;
 
         //instantiates the projectile game object based on the weapon that is currently equipped
-        if(weaponEquipped == "Pierce Shot")
+        if(weaponEquipped == "Pierce Shot"){
             newProjectile = Instantiate(altProjectile, transform.position, Quaternion.Euler(pos));
+            audioSource.PlayOneShot(altWeaponSFX);
+        }
         else if(weaponEquipped == "Poison Shot"){
             newProjectile = Instantiate(altProjectile, transform.position, Quaternion.Euler(pos));
             newProjectile.GetComponent<SpriteRenderer>().sprite = weaponSprites.ElementAt(0);
+            audioSource.PlayOneShot(altWeaponSFX);
+
         }
         else if(weaponEquipped == "Multi Shot"){
             newProjectile = Instantiate(defaultProjectile, transform.position, Quaternion.Euler(pos));
             newProjectile.GetComponent<SpriteRenderer>().sprite = weaponSprites.ElementAt(1);
+            audioSource.PlayOneShot(defaultWeaponSFX);
         }
         else if(weaponEquipped == "Charge Shot"){
             newProjectile = Instantiate(defaultProjectile, transform.position, Quaternion.Euler(pos));
+            audioSource.PlayOneShot(chargeSFX.ElementAt(chargeLevel-1));
             if(chargeLevel == 1)
                 newProjectile.GetComponent<SpriteRenderer>().sprite = weaponSprites.ElementAt(2);
             else if(chargeLevel == 2)
                 newProjectile.GetComponent<SpriteRenderer>().sprite = weaponSprites.ElementAt(3);
             else
                 newProjectile.GetComponent<SpriteRenderer>().sprite = weaponSprites.ElementAt(4);
+            
         }
         else if(weaponEquipped == "Explosive Shot"){
             newProjectile = Instantiate(defaultProjectile, transform.position, Quaternion.Euler(pos));
             newProjectile.GetComponent<SpriteRenderer>().sprite = weaponSprites.ElementAt(5);
+            audioSource.PlayOneShot(defaultWeaponSFX);
         }
-        else
+        else{
             newProjectile = Instantiate(defaultProjectile, transform.position, Quaternion.Euler(pos));
+            audioSource.PlayOneShot(defaultWeaponSFX);
+        }
         
 
         newProjectile.GetComponent<Rigidbody2D>().AddForce(direction * projectileSpeed);
@@ -162,18 +189,82 @@ public class Player : MonoBehaviour
                 break;
         }
 
+        // IEnumerator timerRoutine(float duration, float cooldown){
+        //     yield return new WaitForSecondsRealtime(duration);
+        //     Debug.Log("Ability Deactivated");
+        //     abilityActive = false;
+        //     Time.timeScale = 1f;
+        //     Time.fixedDeltaTime = fixedDeltaTime * Time.timeScale;
+        //     StartCoroutine(CooldownRoutine());
+        //     IEnumerator CooldownRoutine(){
+        //         Debug.Log("Ability on cooldown");
+        //         yield return new WaitForSeconds(cooldown);
+        //         Debug.Log("Ability off cooldown");
+        //         abilityAvailable = true;
+        //     }
+        // }
+
         IEnumerator timerRoutine(float duration, float cooldown){
-            yield return new WaitForSecondsRealtime(duration);
-            Debug.Log("Ability Deactivated");
+            StartCoroutine(FadeRoutine());
+            while(duration > 0){
+                encounterHandler.abilityText.text = duration + "s";
+                if(abilityEquipped == "Time Slow")
+                    yield return new WaitForSeconds(.5f);
+                else
+                    yield return new WaitForSeconds(1);
+                duration--;
+            }
+            encounterHandler.abilityText.text = "0s";
             abilityActive = false;
             Time.timeScale = 1f;
             Time.fixedDeltaTime = fixedDeltaTime * Time.timeScale;
+            Debug.Log("Ability Deactivated");
             StartCoroutine(CooldownRoutine());
             IEnumerator CooldownRoutine(){
                 Debug.Log("Ability on cooldown");
-                yield return new WaitForSeconds(cooldown);
+                //Coroutine is used to make the ability icon fade in and out when active
+                while(cooldown > 0){
+                    yield return new WaitForSeconds(1);
+                    encounterHandler.abilityText.text = cooldown + "s";
+                    cooldown--;
+                }
                 Debug.Log("Ability off cooldown");
                 abilityAvailable = true;
+
+                yield return new WaitForSeconds(1);
+                if(abilityUsed){
+                    encounterHandler.abilityText.text = "";
+                    encounterHandler.abilityImage.color = new Color(1f,1f,1f,.25f);
+                }
+                else{
+                    encounterHandler.abilityText.text = "Use: Space";
+                    encounterHandler.abilityImage.color = new Color(1f,1f,1f,1f);
+                }
+            }
+
+            IEnumerator FadeRoutine(){
+                float timer;
+                Color origColor;
+                while(duration > 0){
+                    timer = 0;
+                    origColor = encounterHandler.abilityImage.color;
+                    //Fades from light to dark
+                    while(timer < 1){
+                        yield return null;
+                        timer+=Time.deltaTime;
+                        encounterHandler.abilityImage.color = Color.Lerp(origColor, new Color(1f,1f,1f,.25f), timer/1);
+                    }
+                    encounterHandler.abilityImage.color = new Color(1f,1f,1f,.25f);
+
+                    //Fades dark to light
+                    timer = 0;
+                    while(timer < 1){
+                        yield return null;
+                        timer+=Time.deltaTime;
+                        encounterHandler.abilityImage.color = Color.Lerp(new Color(1f,1f,1f,.25f), origColor, timer/1);
+                    }
+                }
+                encounterHandler.abilityImage.color = new Color(1f,1f,1f,.25f);
             }
         }
         //Create coroutine that accepts x number of seconds to wait for
@@ -196,6 +287,7 @@ public class Player : MonoBehaviour
             return;
         }
 
+        audioSource.PlayOneShot(damageSFX);
         ImmuneCooldown();
         spriteRenderer.color = Color.red;
         StartCoroutine(DamageEffect());
@@ -213,18 +305,18 @@ public class Player : MonoBehaviour
 
             if(passiveEquipped == "Self Res" && passiveAvailable){
                 playerHealth = maxHealth > 5 ? 5: 3;
-                healthText.text = "HP: " + playerHealth;
+                healthText.text = ": " + playerHealth;
                 Debug.Log("Self Res Used");
                 passiveAvailable = false;
             }
             else{
-                healthText.text = "HP: 0";
+                healthText.text = ": 0";
                 Time.timeScale = 0;
-                encounterHandler.EncounterFinish();
+                encounterHandler.EncounterFinish(false);
             }
         }
         else
-            healthText.text = "HP: " + playerHealth;
+            healthText.text = ": " + playerHealth;
     }
 
     public void ImmuneCooldown(){
@@ -319,6 +411,7 @@ public class Player : MonoBehaviour
         //Branch taken if player walks into one of the the zones for the retake zones encounter
         if(other.gameObject.tag == "Zone" && !other.gameObject.GetComponent<Zone>().captured){
             //If a zone is entered, it is activated, so that any kills while inside of it, will grant progress towards that specific zone
+            EnemyAI.addedSight += 10;
             other.gameObject.GetComponent<Zone>().active = true;
             other.gameObject.GetComponent<SpriteRenderer>().color = Color.white;
             inZone = true;
@@ -358,8 +451,10 @@ public class Player : MonoBehaviour
     }
 
     public void OnTriggerStay2D(Collider2D other){
-        if(other.gameObject.tag == "Teleporter" && objectiveCompleted && Vector3.Distance(other.transform.position,transform.position) < .65f)
-            encounterHandler.EncounterFinish();
+        if(other.gameObject.tag == "Teleporter" && objectiveCompleted && Vector3.Distance(other.transform.position,transform.position) < .8f && !exfiltrated){
+            exfiltrated = true;
+            encounterHandler.EncounterFinish(true);
+        }
     }
     
     public void OnCollisionStay2D(Collision2D collision){
@@ -370,6 +465,7 @@ public class Player : MonoBehaviour
 
     public void OnTriggerExit2D(Collider2D other){
         if(other.gameObject.tag == "Zone"){
+            EnemyAI.addedSight -= 10;
             other.gameObject.GetComponent<Zone>().active = false;
             inZone = false;
             Debug.Log("Zone exited");

@@ -9,20 +9,23 @@ public class InputHandler : MonoBehaviour
     [SerializeField] Player playerCharacter;
     private bool onCooldown = false;
     public float timer = 0.0f;
+    SpriteRenderer sr;
+
+    void Start(){
+        sr = playerCharacter.GetComponent<SpriteRenderer>();
+    }
     // Update is called once per frame
     void Update()
     {
-
-        if(Input.GetKey(KeyCode.Q)){
-            SceneManager.LoadScene("ShipHub");
-        }
         Vector3 input = Vector3.zero;
 
         //Following 4 if statements handle player movement.
         if(Input.GetKey(KeyCode.A)){
+            sr.flipX = false;
             input.x = -1;
         }
         if(Input.GetKey(KeyCode.D)){
+            sr.flipX = true;
             input.x = 1;
         }
         if(Input.GetKey(KeyCode.W)){
@@ -57,10 +60,14 @@ public class InputHandler : MonoBehaviour
                         playerCharacter.ShootProjectile(new Vector3(0, 0, 90), new Vector3(0, 100, 0));
                     else if(Input.GetKeyUp(KeyCode.DownArrow))
                         playerCharacter.ShootProjectile(new Vector3(0, 0, -90), new Vector3(0, -100, 0));                  
-                    else if(Input.GetKeyUp(KeyCode.LeftArrow))
-                        playerCharacter.ShootProjectile(new Vector3(0, 0, 180), new Vector3(-100, 0, 0));                 
-                    else if(Input.GetKeyUp(KeyCode.RightArrow))
+                    else if(Input.GetKeyUp(KeyCode.LeftArrow)){
+                        sr.flipX = false;
+                        playerCharacter.ShootProjectile(new Vector3(0, 0, 180), new Vector3(-100, 0, 0));        
+                    }         
+                    else if(Input.GetKeyUp(KeyCode.RightArrow)){
+                        sr.flipX = true;
                         playerCharacter.ShootProjectile(new Vector3(0, 0, 0), new Vector3(100, 0, 0));
+                    }
 
                     FireCooldown();
                     
@@ -89,6 +96,7 @@ public class InputHandler : MonoBehaviour
                         playerCharacter.ShootProjectile(new Vector3(0, 0, 195), new Vector3(-100, -50, 0));
                         playerCharacter.ShootProjectile(new Vector3(0, 0, 165), new Vector3(-100, 50, 0));
                     }
+                    sr.flipX = false;
                     playerCharacter.ShootProjectile(new Vector3(0, 0, 180), new Vector3(-100, 0, 0));
                     FireCooldown();        
                 }
@@ -97,6 +105,7 @@ public class InputHandler : MonoBehaviour
                         playerCharacter.ShootProjectile(new Vector3(0, 0, -15), new Vector3(100, -50, 0));
                         playerCharacter.ShootProjectile(new Vector3(0, 0, 15), new Vector3(100, 50, 0));
                     }
+                    sr.flipX = true;
                     playerCharacter.ShootProjectile(new Vector3(0, 0, 0), new Vector3(100, 0, 0));
                     FireCooldown();
                 }
@@ -106,6 +115,9 @@ public class InputHandler : MonoBehaviour
 
         if(Input.GetKeyDown(KeyCode.Space))
             playerCharacter.UseAbility();
+
+        if(Input.GetKeyDown(KeyCode.P))
+            playerCharacter.encounterHandler.Pause();
         
     }
 

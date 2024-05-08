@@ -100,9 +100,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 35a28b03d80627347a0a736a0841d4a2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  sightDistance: 8
+  baseHealth: 0
+  baseDamage: 0
+  baseSpeed: 0
   enemyHealth: 6
   damageDealt: 3
   enemySpeed: 2
+  enemySR: {fileID: 0}
+  speedReduced: 0
+  damageReduced: 0
+  poisoned: 0
 --- !u!50 &9007635950068136651
 Rigidbody2D:
   serializedVersion: 4

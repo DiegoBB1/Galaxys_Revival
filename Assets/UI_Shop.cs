@@ -20,6 +20,9 @@ public class UI_Shop : MonoBehaviour
     [SerializeField] List<Sprite> abilityIcons;
     [SerializeField] List<Sprite> weaponIcons;
 
+    List<GameObject> shopItems = new List<GameObject>();
+
+
     public struct Shop_Item
     {
         public Sprite item_icon;
@@ -42,39 +45,40 @@ public class UI_Shop : MonoBehaviour
         // On awake, will create each of the items of the shop and store their reference in a list to be called upon shop generation
 
         //Stat Upgrades
-        Shop_Item health = new Shop_Item(statIcons.ElementAt(0), "Health", 25, "Gives +2 HP");
+        Shop_Item health = new Shop_Item(statIcons.ElementAt(0), "Health", 25, "Grants +2 HP, if not at max health (Vitality stat)");
         Shop_Item fireRate = new Shop_Item(statIcons.ElementAt(1), "Increased Fire Rate", 75, "Reduces time between projectiles fired by the player");        
         Shop_Item damage = new Shop_Item(statIcons.ElementAt(2), "Increased Damage", 125, "Increases the amount of damage done by projectiles");        
         Shop_Item speed = new Shop_Item(statIcons.ElementAt(3), "Increased Speed", 50, "Increases the movement speed of the player");        
         Shop_Item defense = new Shop_Item(statIcons.ElementAt(4), "Increased Defense", 100, "Decreases the amount of damage taken when hit by enemies");        
         Shop_Item projectileSpeed = new Shop_Item(statIcons.ElementAt(5), "Faster Projectiles", 25, "Increases the speed of the projectiles fired by the player");        
-        Shop_Item vitality = new Shop_Item(statIcons.ElementAt(6), "Increased Vitality", 25, "Increases the maximum health of the player");        
+        Shop_Item vitality = new Shop_Item(statIcons.ElementAt(6), "Increased Vitality", 25, "Increases the maximum health of the player (does not grant health)");        
         Shop_Item luck = new Shop_Item(statIcons.ElementAt(7), "Increased Luck", 25, "Increases the chance of earning bonus credits on mission complete");    
 
         stat_upgrades.AddRange(new List<Shop_Item>(){health, fireRate, damage, speed, defense, projectileSpeed, vitality, luck});
 
         //Passive Upgrades
-        Shop_Item shield = new Shop_Item(passiveIcons.ElementAt(0), "Regenerative Shield", 0, "If the player is hit, the shield will nullify damage, temporarily breaking it before use again");
-        Shop_Item slowProjectiles = new Shop_Item(passiveIcons.ElementAt(1), "Slowing Projectiles", 0, "On contact, projectile will temporarily slow target");
-        Shop_Item hinderProjectiles = new Shop_Item(passiveIcons.ElementAt(2), "Weakening Projectiles", 0, "On contact, projectile will temporarily reduce damage of the target");
-        Shop_Item selfRes = new Shop_Item(passiveIcons.ElementAt(3), "Self Resurrection", 0, "Upon death, player will be brought back to life, with 5 HP");
+        Shop_Item shield = new Shop_Item(passiveIcons.ElementAt(0), "Regenerative Shield", 300, "If the player is hit, the shield will nullify damage, temporarily breaking it before use again");
+        Shop_Item slowProjectiles = new Shop_Item(passiveIcons.ElementAt(1), "Slowing Projectiles", 150, "On contact, projectile will temporarily slow target");
+        Shop_Item hinderProjectiles = new Shop_Item(passiveIcons.ElementAt(2), "Weakening Projectiles", 150, "On contact, projectile will temporarily reduce damage of the target");
+        Shop_Item selfRes = new Shop_Item(passiveIcons.ElementAt(3), "Self Resurrection", 200, "Upon death, player will be brought back to life, with 5 HP");
 
         passive_upgrades.AddRange(new List<Shop_Item>() {shield, slowProjectiles, hinderProjectiles, selfRes});
 
         //Ability Upgrades
-        Shop_Item slowTime = new Shop_Item(abilityIcons.ElementAt(0), "Time Slow", 0, "When activated, time is temporarily slowed. (Cooldown: 60 seconds)");
-        Shop_Item cloakDevice = new Shop_Item(abilityIcons.ElementAt(1), "Cloaking Device", 0, "When activated, enemies will ignore the player. (Cooldown: 60 seconds)");
-        Shop_Item creditGen = new Shop_Item(abilityIcons.ElementAt(2), "Credit Generator", 0, "When activated, all enemies defeated reward credits. Can use once per mission");
-        Shop_Item healthGen = new Shop_Item(abilityIcons.ElementAt(3), "Health Generator", 0, "When activated, defeating enemies heals you. Can use once per mission");
+        Shop_Item slowTime = new Shop_Item(abilityIcons.ElementAt(0), "Time Slow", 200, "When activated, time is slowed for 10s. (Cooldown: 60s)");
+        Shop_Item cloakDevice = new Shop_Item(abilityIcons.ElementAt(1), "Cloaking Device", 300, "When activated, enemies will ignore the player for 5s. (Cooldown: 30s)");
+        Shop_Item creditGen = new Shop_Item(abilityIcons.ElementAt(2), "Credit Generator", 250, "When activated, all enemies defeated within 20s reward credits. Can use once per mission");
+        Shop_Item healthGen = new Shop_Item(abilityIcons.ElementAt(3), "Health Generator", 400, "When activated, defeating enemies heals you. Can use once per mission. (Duration: 20s)");
+
 
         ability_upgrades.AddRange(new List<Shop_Item>() {slowTime, cloakDevice, creditGen, healthGen});
 
         //Weapon Upgrades
-        Shop_Item piercingShot = new Shop_Item(weaponIcons.ElementAt(0), "Pierce Shot", 200, "Projectiles fired will pierce enemies, hitting multiple targets");
-        Shop_Item multiShot = new Shop_Item(weaponIcons.ElementAt(1), "Multi Shot", 0, "Weapon capable of firing three projectiles forward in cone shape");
-        Shop_Item chargeShot = new Shop_Item(weaponIcons.ElementAt(2), "Charge Shot", 0, "Projectiles can be charged and released, dealing additional damage");
-        Shop_Item poisonShot = new Shop_Item(weaponIcons.ElementAt(3), "Poison Shot", 0, "Projectiles poison targets, dealing damage over time");
-        Shop_Item explosiveShot = new Shop_Item(weaponIcons.ElementAt(4), "Explosive Shot", 0, "Projectiles explode on contact, dealing damage to nearby targets");
+        Shop_Item piercingShot = new Shop_Item(weaponIcons.ElementAt(0), "Pierce Shot", 400, "Projectiles fired will pierce enemies, hitting multiple targets");
+        Shop_Item multiShot = new Shop_Item(weaponIcons.ElementAt(1), "Multi Shot", 400, "Weapon capable of firing three projectiles forward in cone shape");
+        Shop_Item chargeShot = new Shop_Item(weaponIcons.ElementAt(2), "Charge Shot", 150, "Projectiles can be charged and released, dealing additional damage");
+        Shop_Item poisonShot = new Shop_Item(weaponIcons.ElementAt(3), "Poison Shot", 200, "Projectiles poison targets, dealing damage over time");
+        Shop_Item explosiveShot = new Shop_Item(weaponIcons.ElementAt(4), "Explosive Shot", 300, "Projectiles explode on contact, dealing damage to nearby targets");
 
         weapon_upgrades.AddRange(new List<Shop_Item>() {piercingShot, multiShot, chargeShot, poisonShot, explosiveShot});
 
@@ -105,7 +109,7 @@ public class UI_Shop : MonoBehaviour
     public void CreateItemButton(Shop_Item item, int xVal, int index){
         Transform shopItemTransform = Instantiate(shopItemTemplate, container);
         RectTransform shopItemRectTransform = shopItemTransform.GetComponent<RectTransform>();
-
+        shopItems.Add(shopItemTransform.gameObject);
         float itemHeight = 225f;
 
         shopItemRectTransform.anchoredPosition = new Vector2(xVal, 250 + (-itemHeight * index));
@@ -119,15 +123,24 @@ public class UI_Shop : MonoBehaviour
         shopItemTransform.GetComponent<Button>().onClick.AddListener(delegate {ItemClicked(item.item_name, item.item_price); });
     }
 
-
+    public void shopCleared(){
+ 
+        foreach (var tree in shopItems) {
+            Destroy(tree);
+        }
+        shopItems.Clear();
+    }
+    
     public void ItemClicked(string itemName, int itemPrice){
         //Checks if a stat is maxed or if a single-type upgrade has already been purchased
         if(CheckStatMaxed(itemName)){
+            Tooltip.ShowTooltip_Static("Upgrade Already Owned/Maxed");
             Debug.Log("Upgrade already owned");
             return;
         }
 
         if(Player.currency >= itemPrice){
+            GetComponent<AudioSource>().Play();
             //Grant upgrade
             switch(itemName) {
                 //The following 8 cases handle the stat upgrades
